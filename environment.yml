@@ -1,0 +1,71 @@
+name: radio
+channels:
+    - nvidia
+    - pytorch
+    - defaults
+    - conda-forge
+
+dependencies:
+    - python=3.9
+    - cudnn=8.2.1
+    - cudatoolkit=11.5.0
+    - pytorch=1.10.1
+    - torchvision
+    - coverage
+    - pytest
+    - pytest-cov
+    - coveralls
+    - flake8
+    - rope
+    - black
+    - pyyaml
+    - future # for backwards compatibility
+    - pathlib2 # for backwards compatibility
+    - pip
+    - pip:
+        - isort
+        - autoimport
+        - autoflake
+        - yapf
+        - mypy
+        - pylint
+        - dominate
+        - visdom
+        - matplotlib
+        - scikit-learn
+        - scikit-image
+        - Pillow
+        - seaborn
+        - pandas
+        - nibabel
+        - tifffile
+        - imagecodecs
+        - openslide-python
+        - gdown
+        - tqdm
+        - lmdb
+        - cucim
+        - einops
+        - mlflow
+        - psutil
+        - GPUtil
+        - tensorboard
+        - tensorboardX
+        - pytorch-lightning
+        - pytorch-ignite
+        - transformers
+        - monai
+        - batchgenerators
+        - itk
+        - rising
+        - torchio
+        - hydra-core
+        - hydra_colorlog
+        - hydra-submitit-launcher
+        - jupyterlab
+        - jupyterlab_vim
+        - jupytext
+        - ipywidgets
+        - types-Pillow  # typing stubs for Pillow
+        - types-requests  # typing stubs for requests
+        - -e .  # install package in development mode

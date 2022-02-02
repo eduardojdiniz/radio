@@ -1,0 +1,3 @@
+defaults:
+    - /structured_config/dataset/mnist@_here_
+    - _self_

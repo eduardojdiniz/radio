@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = radio/*
+include = radio/*
+omit = */setup.py
+[report]
+include = radio/*

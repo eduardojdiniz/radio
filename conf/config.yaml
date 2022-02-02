@@ -1,0 +1,8 @@
+defaults:
+    - /structured_config/experiment/base@_here_
+    - dataset: cifar10
+    - optimizer: nesterov
+    - _self_
+
+phase: train
+debug: False
