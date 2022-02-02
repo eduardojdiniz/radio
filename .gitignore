@@ -81,7 +81,7 @@ target/
 .ipynb_checkpoints/
 
 # Exclude data folder from source control
-data/
+dataset/
 
 # Exclude hydra outputs from source control
 */multirun/*
