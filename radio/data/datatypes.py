@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
 """
-Sample Variables and Types definition.
+Sample  Variables and Types definition.
 """
 
 from __future__ import annotations
-from typing import (Dict, Generic, Mapping, Sequence, TypeVar, Union, cast,
-                    List)
+from typing import Dict, Generic, List, Mapping, Sequence, TypeVar, Union, cast
 from dataclasses import dataclass, astuple, field, InitVar
 
 import matplotlib.pyplot as plt  # type: ignore
@@ -29,6 +28,27 @@ NAMED_SAMPLES = [
 SingletonVar = TypeVar("SingletonVar", Image.Image, torch.Tensor)
 
 
+def get_sample_type(sample_name: str) -> type:
+    """
+    Infer sample type from sample name.
+
+    Parameters
+    ----------
+    sample_name: str
+        Sample name, e.g., ``'Tensor'`.
+
+    Returns
+    -------
+    sample_type: torch.Tensor or Image.Image
+        Sample type, e.g., ``torch.Tensor``.
+    """
+    assert sample_name in SAMPLES + NAMED_SAMPLES
+
+    if "Tensor" in sample_name:
+        return torch.Tensor
+    return Image.Image
+
+
 # Unbounded Sample Types
 @dataclass(frozen=True, repr=False)
 class Sample(Generic[SingletonVar]):
@@ -38,6 +58,11 @@ class Sample(Generic[SingletonVar]):
     __slots__ = ("data", )
     data: SingletonVar
     sample_type: InitVar[str] = "Sample"
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self.data, SampleType):
+            object.__setattr__(self, "data", self.data.data)
 
     def __repr__(self):
         return f"radio.{self.__class__.__qualname__}({self.data})"
@@ -52,9 +77,25 @@ class MutableSample(Generic[SingletonVar]):
     """Mutable Sample Type."""
 
     #: This stores the data like a tuple
-    __slots__ = ("data", )
-    data: SingletonVar
+    _data: SingletonVar
     sample_type: InitVar[str] = "MutableSample"
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self._data, SampleType):
+            object.__setattr__(self, "data", self._data.data)
+
+    @property
+    def data(self) -> SingletonVar:
+        """data attribute"""
+        return self._data
+
+    @data.setter
+    def data(self, data: SingletonVar) -> None:
+        if isinstance(data, SampleType):
+            self._data = data.data
+        else:
+            self._data = data
 
     def __repr__(self):
         return f"radio.{self.__class__.__qualname__}({self.data})"
@@ -70,24 +111,28 @@ class MutableSample(Generic[SingletonVar]):
 @dataclass(frozen=True, repr=False)
 class Tensor(Sample[torch.Tensor]):
     """Immutable Tensor Type."""
+
     sample_type: InitVar[str] = "TorchTensor"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Img(Sample[Image.Image]):
     """Immutable Image Type."""
+
     sample_type: InitVar[str] = "PILImage"
 
 
 @dataclass(repr=False)
 class MutableTensor(MutableSample[torch.Tensor]):
     """Mutable Tensor Type."""
+
     sample_type: InitVar[str] = "TorchTensor"
 
 
 @dataclass(repr=False)
 class MutableImg(MutableSample[Image.Image]):
     """Mutable Image Type."""
+
     sample_type: InitVar[str] = "PILImage"
 
 
@@ -108,6 +153,11 @@ class NamedSample(Generic[KeyVar, SingletonVar]):
     data: SingletonVar
     sample_type: InitVar[str] = "Sample"
 
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self.data, (NamedSample, MutableNamedSample)):
+            object.__setattr__(self, "data", self.data.data)
+
     def __repr__(self):
         dictstring = f"{{{self.name}: {self.data}}}"
         return f"radio.{self.__class__.__qualname__}({dictstring})"
@@ -121,12 +171,36 @@ class NamedSample(Generic[KeyVar, SingletonVar]):
 class MutableNamedSample(Generic[KeyVar, SingletonVar]):
     """Mutable Named Sample Type."""
 
-    #: This stores the data like a tuple
-    __slots__ = ("name", "data")
     #: data given name
-    name: KeyVar
-    data: SingletonVar
+    _name: KeyVar
+    _data: SingletonVar
     sample_type: InitVar[str] = "MutableSample"
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self._data, SampleType):
+            object.__setattr__(self, "data", self._data.data)
+
+    @property
+    def data(self) -> SingletonVar:
+        """data attribute"""
+        return self._data
+
+    @data.setter
+    def data(self, data: SingletonVar) -> None:
+        if isinstance(data, SampleType):
+            self._data = data.data
+        else:
+            self._data = data
+
+    @property
+    def name(self) -> KeyVar:
+        """name attribute"""
+        return self._name
+
+    @name.setter
+    def name(self, name: KeyVar) -> None:
+        self._name = name
 
     def __repr__(self):
         dictstring = f"{{{self.name}: {self.data}}}"
@@ -141,33 +215,49 @@ class MutableNamedSample(Generic[KeyVar, SingletonVar]):
 @dataclass(frozen=True, repr=False)
 class NamedTensor(NamedSample[str, torch.Tensor]):
     """Immutable Named Tensor Type."""
+
     sample_type: InitVar[str] = "TorchTensor"
 
 
 @dataclass(frozen=True, repr=False)
 class NamedImg(NamedSample[str, Image.Image]):
     """Immutable Named Image Type."""
+
     sample_type: InitVar[str] = "PILImage"
 
 
 @dataclass(repr=False)
 class MutableNamedTensor(MutableNamedSample[str, torch.Tensor]):
     """Mutable Named Tensor Type."""
+
     sample_type: InitVar[str] = "TorchTensor"
 
 
 @dataclass(repr=False)
 class MutableNamedImg(MutableNamedSample[str, Image.Image]):
     """Mutable Named Image Type."""
+
     sample_type: InitVar[str] = "PILImage"
 
 
 # Generic Sequene of Samples Types
-SampleVar = TypeVar("SampleVar", Tensor, Img, NamedTensor, NamedImg,
-                    MutableTensor, MutableImg, MutableNamedTensor,
-                    MutableNamedImg)
-SampleType = Union[Tensor, Img, NamedTensor, NamedImg, MutableTensor,
-                   MutableImg, MutableNamedTensor, MutableNamedImg]
+SampleVar = TypeVar(
+    "SampleVar",
+    Sample,
+    NamedSample,
+    MutableSample,
+    MutableNamedSample,
+    Tensor,
+    Img,
+    NamedTensor,
+    NamedImg,
+    MutableTensor,
+    MutableImg,
+    MutableNamedTensor,
+    MutableNamedImg,
+)
+
+SampleType = (Sample, NamedSample, MutableSample, MutableNamedSample)
 
 # ####################
 # Hybrid Samples Types
@@ -188,10 +278,17 @@ HybridNamedImg = HybridNamedSample[Image.Image, NamedImg]
 HybridMutableImg = HybridSample[Image.Image, MutableImg]
 HybridMutableNamedImg = HybridNamedSample[Image.Image, MutableNamedImg]
 
-HybridSampleVar = TypeVar("HybridSampleVar", HybridTensor, HybridNamedTensor,
-                          HybridMutableTensor, HybridMutableNamedTensor,
-                          HybridImg, HybridNamedImg, HybridMutableImg,
-                          HybridMutableNamedImg)
+HybridSampleVar = TypeVar(
+    "HybridSampleVar",
+    HybridTensor,
+    HybridNamedTensor,
+    HybridMutableTensor,
+    HybridMutableNamedTensor,
+    HybridImg,
+    HybridNamedImg,
+    HybridMutableImg,
+    HybridMutableNamedImg,
+)
 
 # #########################
 # Sequence of Samples Types
@@ -244,7 +341,7 @@ class SeqSample(Generic[SeqVar]):
     sample_type: InitVar[str] = "Sample"
 
     def __post_init__(self, sample_type):
-        object.__setattr__(self, 'data', _from_samples(sample_type, self.data))
+        object.__setattr__(self, "data", _from_samples(sample_type, self.data))
 
     def __repr__(self):
         return f"radio.{self.__class__.__qualname__}({self.data})"
@@ -267,7 +364,7 @@ class MutableSeqSample(Generic[MutableSeqVar]):
     sample_type: InitVar[str] = "MutableSample"
 
     def __post_init__(self, sample_type):
-        object.__setattr__(self, 'data', _from_samples(sample_type, self.data))
+        object.__setattr__(self, "data", _from_samples(sample_type, self.data))
 
     def __repr__(self):
         return f"radio.{self.__class__.__qualname__}({self.data})"
@@ -284,24 +381,28 @@ class MutableSeqSample(Generic[MutableSeqVar]):
 @dataclass(frozen=True, repr=False)
 class SeqTensor(SeqSample[Seq[HybridTensor]]):
     """Immutable Sequence of Tensors Type."""
+
     sample_type: InitVar[str] = "Tensor"
 
 
 @dataclass(frozen=True, repr=False)
 class SeqImg(SeqSample[Seq[HybridImg]]):
     """Immutable Sequence of Images Type."""
+
     sample_type: InitVar[str] = "Img"
 
 
 @dataclass(repr=False)
 class MutableSeqTensor(MutableSeqSample[Seq[HybridMutableTensor]]):
     """Mutable Sequence of Tensors Type."""
+
     sample_type: InitVar[str] = "MutableTensor"
 
 
 @dataclass(repr=False)
 class MutableSeqImg(MutableSeqSample[Seq[HybridMutableImg]]):
     """Mutable Sequence of Images Type."""
+
     sample_type: InitVar[str] = "MutableImg"
 
 
@@ -366,7 +467,7 @@ class SeqNamedSample(Generic[KeyVar, SeqNamedVar]):
     sample_type: InitVar[str] = "NamedSample"
 
     def __post_init__(self, sample_type):
-        object.__setattr__(self, 'data',
+        object.__setattr__(self, "data",
                            _from_named_seq(sample_type, self.data))
 
     def __repr__(self):
@@ -389,7 +490,7 @@ class MutableSeqNamedSample(Generic[KeyVar, MutableSeqNamedVar]):
     sample_type: InitVar[str] = "MutableNamedSample"
 
     def __post_init__(self, sample_type):
-        object.__setattr__(self, 'data',
+        object.__setattr__(self, "data",
                            _from_named_seq(sample_type, self.data))
 
     def __repr__(self):
@@ -408,12 +509,14 @@ class MutableSeqNamedSample(Generic[KeyVar, MutableSeqNamedVar]):
 @dataclass(frozen=True, repr=False)
 class SeqNamedTensor(SeqNamedSample[str, Seq[HybridNamedTensor]]):
     """Immutable Sequence of Named Tensors Type."""
+
     sample_type: InitVar[str] = "NamedTensor"
 
 
 @dataclass(frozen=True, repr=False)
 class SeqNamedImg(SeqNamedSample[str, Seq[HybridNamedImg]]):
     """Immutable Sequence of Named Images Type."""
+
     sample_type: InitVar[str] = "NamedImg"
 
 
@@ -421,6 +524,7 @@ class SeqNamedImg(SeqNamedSample[str, Seq[HybridNamedImg]]):
 class MutableSeqNamedTensor(
         MutableSeqNamedSample[str, Seq[HybridMutableNamedTensor]]):
     """Mutable Sequence of NamedTensors Type."""
+
     sample_type: InitVar[str] = "MutableNamedTensor"
 
 
@@ -428,13 +532,22 @@ class MutableSeqNamedTensor(
 class MutableSeqNamedImg(MutableSeqNamedSample[str,
                                                Seq[HybridMutableNamedImg]]):
     """Mutable Sequence of Named Images Type."""
+
     sample_type: InitVar[str] = "MutableNamedImg"
 
 
 # Generic Sequence-based Types
-SeqSampleVar = TypeVar("SeqSampleVar", SeqTensor, SeqImg, SeqNamedTensor,
-                       SeqNamedImg, MutableSeqTensor, MutableSeqImg,
-                       MutableSeqNamedTensor, MutableSeqNamedImg)
+SeqSampleVar = TypeVar(
+    "SeqSampleVar",
+    SeqTensor,
+    SeqImg,
+    SeqNamedTensor,
+    SeqNamedImg,
+    MutableSeqTensor,
+    MutableSeqImg,
+    MutableSeqNamedTensor,
+    MutableSeqNamedImg,
+)
 
 # ################################
 # Hybrid Sequence of Samples Types
@@ -444,7 +557,7 @@ HybridSeqSample = Union[HybridSampleVar, Sequence[HybridSampleVar],
                         SeqSampleVar]
 HybridNamedSeqSample = Union[Dict[str, HybridSampleVar],
                              Dict[str, Sequence[HybridSampleVar]],
-                             Dict[str, SeqSampleVar]]
+                             Dict[str, SeqSampleVar], ]
 
 # Tensors
 HybridSeqTensor = HybridSeqSample[HybridTensor, SeqTensor]
@@ -460,11 +573,17 @@ HybridMutableSeqImg = HybridSeqSample[HybridMutableImg, MutableSeqNamedImg]
 HybridMutableNamedSeqImg = HybridNamedSeqSample[HybridMutableNamedImg,
                                                 MutableSeqNamedImg]
 
-HybridSeqSampleVar = TypeVar("HybridSeqSampleVar", HybridSeqTensor,
-                             HybridNamedSeqTensor, HybridMutableSeqTensor,
-                             HybridMutableNamedSeqTensor, HybridSeqImg,
-                             HybridNamedSeqImg, HybridMutableSeqImg,
-                             HybridMutableNamedSeqImg)
+HybridSeqSampleVar = TypeVar(
+    "HybridSeqSampleVar",
+    HybridSeqTensor,
+    HybridNamedSeqTensor,
+    HybridMutableSeqTensor,
+    HybridMutableNamedSeqTensor,
+    HybridSeqImg,
+    HybridNamedSeqImg,
+    HybridMutableSeqImg,
+    HybridMutableNamedSeqImg,
+)
 
 # #####################################
 # Sequence of Sequence of Samples Types
@@ -541,24 +660,28 @@ class MutableSeqSeqSample(Generic[MutableSeqSeqVar]):
 @dataclass(frozen=True)
 class SeqSeqTensor(SeqSeqSample[SeqSeq[HybridSeqTensor]]):
     """Immutable Nested Sequence of Tensors Type."""
+
     sample_type: str = field(default="SeqTensor", init=False)
 
 
 @dataclass(frozen=True)
 class SeqSeqImg(SeqSeqSample[SeqSeq[HybridSeqImg]]):
     """Immutable Nested Sequence of Images Type."""
+
     sample_type: str = field(default="SeqImg", init=False)
 
 
 @dataclass
 class MutableSeqSeqTensor(MutableSeqSeqSample[SeqSeq[HybridMutableSeqTensor]]):
     """Mutable Nested Sequence of Tensors Type."""
+
     sample_type: str = field(default="MutableSeqTensor", init=False)
 
 
 @dataclass
 class MutableSeqSeqImg(MutableSeqSeqSample[SeqSeq[HybridMutableSeqImg]]):
     """Mutable Nested Sequence of Images Type."""
+
     sample_type: str = field(default="MutableSeqImg", init=False)
 
 
@@ -568,9 +691,11 @@ class MutableSeqSeqImg(MutableSeqSeqSample[SeqSeq[HybridMutableSeqImg]]):
 
 SeqSeqNamedVar = TypeVar("SeqSeqNamedVar", SeqSeq[HybridNamedSeqTensor],
                          SeqSeq[HybridNamedSeqImg])
-MutableSeqSeqNamedVar = TypeVar("MutableSeqSeqNamedVar",
-                                SeqSeq[HybridMutableNamedSeqTensor],
-                                SeqSeq[HybridMutableNamedSeqImg])
+MutableSeqSeqNamedVar = TypeVar(
+    "MutableSeqSeqNamedVar",
+    SeqSeq[HybridMutableNamedSeqTensor],
+    SeqSeq[HybridMutableNamedSeqImg],
+)
 
 
 def _from_named_seq(class_name: str = "NamedTensor",
@@ -638,12 +763,14 @@ class MutableSeqSeqNamedSample(Generic[MutableSeqSeqNamedVar]):
 @dataclass(frozen=True)
 class SeqSeqNamedTensor(SeqSeqNamedSample[SeqSeq[HybridNamedSeqTensor]]):
     """Immutable Nested Sequence of Named Tensors Type."""
+
     sample_type: str = field(default="SeqNamedTensor", init=False)
 
 
 @dataclass(frozen=True)
 class SeqSeqNamedImg(SeqSeqNamedSample[SeqSeq[HybridNamedSeqImg]]):
     """Immutable Nested Sequence of Named Images Type."""
+
     sample_type: str = field(default="SeqNamedImg", init=False)
 
 
@@ -651,6 +778,7 @@ class SeqSeqNamedImg(SeqSeqNamedSample[SeqSeq[HybridNamedSeqImg]]):
 class MutableSeqSeqNamedTensor(
         MutableSeqSeqNamedSample[SeqSeq[HybridMutableNamedSeqTensor]]):
     """Mutable Nested Sequence of Named Tensors Type."""
+
     sample_type: str = field(default="MutableSeqNamedTensor", init=False)
 
 
@@ -658,14 +786,22 @@ class MutableSeqSeqNamedTensor(
 class MutableSeqSeqNamedImg(
         MutableSeqSeqNamedSample[SeqSeq[HybridMutableNamedSeqImg]]):
     """Mutable Nested Sequence of Named Images Type."""
+
     sample_type: str = field(default="MutableSeqNamedImg", init=False)
 
 
 # Generic Nested Sequence-based Types
-SeqSeqSampleVar = TypeVar("SeqSeqSampleVar", SeqSeqTensor, SeqSeqImg,
-                          SeqSeqNamedTensor, SeqSeqNamedImg,
-                          MutableSeqSeqTensor, MutableSeqSeqImg,
-                          MutableSeqSeqNamedTensor, MutableSeqSeqNamedImg)
+SeqSeqSampleVar = TypeVar(
+    "SeqSeqSampleVar",
+    SeqSeqTensor,
+    SeqSeqImg,
+    SeqSeqNamedTensor,
+    SeqSeqNamedImg,
+    MutableSeqSeqTensor,
+    MutableSeqSeqImg,
+    MutableSeqSeqNamedTensor,
+    MutableSeqSeqNamedImg,
+)
 
 # #######################################
 # Hybrid Nested Sequence of Samples Types
@@ -674,7 +810,7 @@ HybridSeqSeqSample = Union[HybridSeqSampleVar, Sequence[HybridSeqSampleVar],
                            SeqSeqSampleVar]
 HybridNamedSeqSeqSample = Union[Dict[str, HybridSeqSampleVar],
                                 Dict[str, Sequence[HybridSeqSampleVar]],
-                                Dict[str, SeqSeqSampleVar]]
+                                Dict[str, SeqSeqSampleVar], ]
 
 # Tensors
 HybridSeqSeqTensor = HybridSeqSeqSample[HybridSeqTensor, SeqSeqTensor]
@@ -695,9 +831,16 @@ HybridMutableNamedSeqSeqImg = HybridNamedSeqSeqSample[HybridMutableNamedSeqImg,
                                                       MutableSeqSeqNamedImg]
 
 HybridSeqSeqSampleVar = TypeVar(
-    "HybridSeqSeqSampleVar", HybridSeqSeqTensor, HybridNamedSeqSeqTensor,
-    HybridMutableSeqSeqTensor, HybridMutableNamedSeqSeqTensor, HybridSeqSeqImg,
-    HybridNamedSeqSeqImg, HybridMutableSeqSeqImg, HybridMutableNamedSeqSeqImg)
+    "HybridSeqSeqSampleVar",
+    HybridSeqSeqTensor,
+    HybridNamedSeqSeqTensor,
+    HybridMutableSeqSeqTensor,
+    HybridMutableNamedSeqSeqTensor,
+    HybridSeqSeqImg,
+    HybridNamedSeqSeqImg,
+    HybridMutableSeqSeqImg,
+    HybridMutableNamedSeqSeqImg,
+)
 
 # ##############
 # Umbrella Types
@@ -731,7 +874,7 @@ MultiNamedTensor = Union[HybridNamedTensor, HybridNamedSeqTensor,
                          HybridNamedSeqSeqTensor]
 MutableMultiNamedTensor = Union[HybridMutableNamedTensor,
                                 HybridMutableNamedSeqTensor,
-                                HybridMutableNamedSeqSeqTensor]
+                                HybridMutableNamedSeqSeqTensor, ]
 
 # Aliases
 NamedImgs = MultiNamedImg
