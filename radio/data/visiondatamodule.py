@@ -521,7 +521,7 @@ class VisionDataModule(BaseDataModule):
     #: Dataset class to use. E.g., torchvision.datasets.MNIST
     dataset_cls: type
     #: A tuple describing the shape of the data
-    dims: tuple
+    dims: List[int]
     #: Dataset name
     name: str
 
@@ -542,9 +542,11 @@ class VisionDataModule(BaseDataModule):
         """
         if stage == "fit" or stage is None:
             train_transforms = self.default_transforms(
+                stage="fit"
             ) if self.train_transforms is None else self.train_transforms
 
             val_transforms = self.default_transforms(
+                stage="fit"
             ) if self.val_transforms is None else self.val_transforms
 
             self.train_dataset = self.dataset_cls(self.root,
@@ -572,6 +574,7 @@ class VisionDataModule(BaseDataModule):
 
         if stage == "test" or stage is None:
             test_transforms = self.default_transforms(
+                stage="test"
             ) if self.test_transforms is None else self.test_transforms
             test_dataset = self.dataset_cls(self.root,
                                             train=False,
@@ -581,11 +584,12 @@ class VisionDataModule(BaseDataModule):
             self.size_test = min([len(data) for data in self.test_datasets])
 
         if stage == "predict" or stage is None:
-            test_transforms = self.default_transforms(
+            predict_transforms = self.default_transforms(
+                stage="predict"
             ) if self.test_transforms is None else self.test_transforms
             predict_dataset = self.dataset_cls(self.root,
                                                train=False,
-                                               transform=test_transforms,
+                                               transform=predict_transforms,
                                                **self.EXTRA_ARGS)
             self.predict_datasets.append(predict_dataset)
             self.size_predict = min(

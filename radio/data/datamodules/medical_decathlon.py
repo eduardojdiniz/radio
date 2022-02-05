@@ -111,6 +111,9 @@ class MedicalDecathlonDataModule(VisionDataModule):
     test_transforms : Callable, optional
         A function/transform that takes in a sample and returns a
         transformed version, e.g, ``torchvision.transforms.RandomCrop``.
+    use_augmentation : bool, optional
+        If ``True``, augment samples during the ``fit`` stage.
+        Default = ``True``.
     batch_size : int, optional
         How many samples per batch to load. Default = ``32``.
     shuffle : bool, optional
@@ -151,6 +154,7 @@ class MedicalDecathlonDataModule(VisionDataModule):
         train_transforms: Optional[Callable] = None,
         val_transforms: Optional[Callable] = None,
         test_transforms: Optional[Callable] = None,
+        use_augmentation: bool = True,
         batch_size: int = 32,
         shuffle: bool = True,
         num_workers: int = 0,
@@ -175,6 +179,7 @@ class MedicalDecathlonDataModule(VisionDataModule):
                          val_split=val_split,
                          seed=seed,
                          **kwargs)
+        self.use_augmentation = use_augmentation
         self.task = task
         self.task_dir = self.root / task
 
@@ -394,7 +399,7 @@ class MedicalDecathlonDataModule(VisionDataModule):
         transforms = []
         preprocess = self.get_preprocessing_transforms()
         transforms.append(preprocess)
-        if stage == "fit" or stage is None:
+        if stage == "fit" or stage is None and self.use_augmentation:
             augment = self.get_augmentation_transforms()
             transforms.append(augment)
 

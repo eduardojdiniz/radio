@@ -8,6 +8,7 @@ from .validation import *
 from .dataset import *
 from .datatypes import *
 from .datadecorators import *
+from .datautils import *
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     from .visiondatamodule import *

@@ -27,7 +27,7 @@ module_path = Path(rio.__file__)
 SRC = module_path.parents[0].absolute()
 ROOT = module_path.parents[1].absolute()
 SAVE_ROOT = ROOT / "trials"
-DATA_ROOT = ROOT / "data"
+DATA_ROOT = ROOT / "dataset"
 CONF_ROOT = ROOT / "conf"
 
 IMG_EXTENSIONS = (

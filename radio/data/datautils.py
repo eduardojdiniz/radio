@@ -9,7 +9,7 @@ import os.path
 import traceback
 from os.path import join as pjoin
 from pathlib import Path
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Iterable, TypeVar
 
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
@@ -20,13 +20,40 @@ from .datatypes import Tensors, SeqSeqTensor
 
 plt.rcParams["savefig.bbox"] = "tight"
 
+Var = TypeVar("Var")
+
 __all__ = [
+    "get_first_batch",
     "default_image_loader",
     "denormalize",
     "plot",
     "load_standard_test_imgs",
     "check_integrity",
 ]
+
+
+def get_first_batch(loader: Iterable,
+                    default: Optional[Var] = None) -> Optional[Var]:
+    """
+    Returns the first item in the given iterable or `default` if empty,
+    meaningful mostly with 'for' expressions.
+
+    Parameters
+    ----------
+    loader : Iterable
+        Dataloader to get the batch from.
+    default: Any, optional
+        Returned if ``loader`` is empty. Default = ``None``.
+
+    Returns
+    -------
+    batch : Any
+       First batch from the dataloader. Default = ``None``.
+
+    """
+    for batch in loader:
+        return batch
+    return default
 
 
 def default_image_loader(path: Path) -> Image.Image:

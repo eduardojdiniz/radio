@@ -380,6 +380,8 @@ class OneFoldValidation:
         train_sampler, val_sampler = self._get_samplers(val_split)
         self.train_samplers.append(train_sampler)
         self.val_samplers.append(val_sampler)
+        self.size_train = len(self.train_samplers[0])
+        self.size_val = len(self.val_samplers[0])
 
     def _get_samplers(
         self,
