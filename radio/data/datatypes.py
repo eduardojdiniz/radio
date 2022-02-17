@@ -5,7 +5,8 @@ Sample  Variables and Types definition.
 """
 
 from __future__ import annotations
-from typing import Dict, Generic, List, Mapping, Sequence, TypeVar, Union, cast
+from typing import (Dict, Generic, List, Mapping, Sequence, TypeVar, Union,
+                    cast, Tuple)
 from dataclasses import dataclass, astuple, field, InitVar
 
 import matplotlib.pyplot as plt  # type: ignore
@@ -20,6 +21,9 @@ SAMPLES = ["Tensor", "MutableTensor", "Img", "MutableImg"]
 NAMED_SAMPLES = [
     "NamedTensor", "MutableNamedTensor", "NamedImg", "MutableNamedImg"
 ]
+
+TripletIntType = Tuple[int, int, int]
+SpatialShapeType = Union[int, TripletIntType]
 
 # ############
 # Sample Types

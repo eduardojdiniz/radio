@@ -92,7 +92,7 @@ def is_dir_or_symlink(path: PathType) -> bool:
 
 def ensure_exists(path: PathType) -> Path:
     """
-    Enforce the directory existance.
+    Enforce the directory existence.
     """
     path = Path(path)
     path.mkdir(parents=True, exist_ok=True)

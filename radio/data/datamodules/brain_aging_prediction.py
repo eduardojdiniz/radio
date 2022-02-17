@@ -63,10 +63,10 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
     Typical Workflow
     ----------------
-    bap = BrainAgingPredictionDataModule()
-    bap.prepare_data() # download
-    bap.setup(stage) # process and split
-    bap.teardown(stage) # clean-up
+    data = BrainAgingPredictionDataModule()
+    data.prepare_data() # download
+    data.setup(stage) # process and split
+    data.teardown(stage) # clean-up
 
     Parameters
     ----------
@@ -93,6 +93,8 @@ class BrainAgingPredictionDataModule(VisionDataModule):
     use_augmentation : bool, optional
         If ``True``, augment samples during the ``fit`` stage.
         Default = ``True``.
+    resample : bool, optional
+        If ``True``, resample all images to ``T1w'``. Default = ``False``.
     batch_size : int, optional
         How many samples per batch to load. Default = ``32``.
     shuffle : bool, optional
@@ -115,6 +117,10 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         If ``num_folds = 2``, then ``val_split`` specify how the
         train_dataset should be split into train/validation datasets. If
         ``num_folds > 2``, then it is not used. Default = ``0.2``.
+    modalities : List[str], optional
+        Which modalilities to load. Default = ``['T1w']``.
+    labels : List[str], optional
+        Which labels to load. Default = ``[]``.
     dims : List[int], optional
         Max spatial dimensions across subjects' images.
         Default = ``[256, 256, 256]``.

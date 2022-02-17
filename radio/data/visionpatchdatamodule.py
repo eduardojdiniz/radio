@@ -9,26 +9,21 @@ split, transform, and process the data.
 """
 
 from abc import abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, List, Optional
 import shutil
 from torch.utils.data import DataLoader
-import torchio as tio  # type: ignore
 
-from radio.settings.pathutils import DATA_ROOT, PathType
 from .validation import TrainDataLoaderType, EvalDataLoaderType
-from .datatypes import SpatialShapeType
 from .basedatamodule import BaseDataModule
 
 
-class VisionPatchDataModule(BaseDataModule):
+class VisionDataModule(BaseDataModule):
     """
-    Base class For making patch-based datasets which are compatible with
-    torchvision.
+    Base class For making datasets which are compatible with torchvision.
 
     To create a subclass, you need to implement the following functions:
 
-    A VisionPatchDataModule needs to implement 2 key methods +
-    an optional __init__:
+    A VisionDataModule needs to implement 2 key methods + an optional __init__:
     <__init__>:
         (Optionally) Initialize the class, first call super.__init__().
     <default_transforms>:
@@ -39,7 +34,7 @@ class VisionPatchDataModule(BaseDataModule):
 
     Typical Workflow
     ----------------
-    datamodule = VisionPatchDataModule()
+    datamodule = VisionDataModule()
     datamodule.prepare_data() # download
     datamodule.setup(stage) # process and split
     datamodule.teardown(stage) # clean-up
@@ -48,9 +43,6 @@ class VisionPatchDataModule(BaseDataModule):
     ----------
     root : Path or str, optional
         Root directory of dataset. Default = ``DATA_ROOT``.
-    patch_size : int or (int, int, int)
-        Tuple of integers ``(w, h, d)`` to generate patches of size ``w x h x
-        d``. If a single number ``n`` is provided, ``w = h = d = n``.
     train_transforms : Callable, optional
         A function/transform that takes in a sample and returns a
         transformed version, e.g, ``torchvision.transforms.RandomCrop``.
@@ -60,60 +52,16 @@ class VisionPatchDataModule(BaseDataModule):
     test_transforms : Callable, optional
         A function/transform that takes in a sample and returns a
         transformed version, e.g, ``torchvision.transforms.RandomCrop``.
-    probability_map : str, optional
-        Name of the image in the input subject that will be used as a sampling
-        probability map.  The probability of sampling a patch centered on a
-        specific voxel is the value of that voxel in the probability map. The
-        probabilities need not be normalized. For example, voxels can have
-        values 0, 1 and 5. Voxels with value 0 will never be at the center of a
-        patch. Voxels with value 5 will have 5 times more chance of being at
-        the center of a patch that voxels with a value of 1. If ``None``,
-        uniform sampling is used. Default = ``None``.
-    label_name : str, optional
-        Name of the label image in the subject that will be used to generate
-        the sampling probability map. If ``None`` and ``probability_map`` is
-        ``None``, the first image of type ``torchio.LABEL`` found in the
-        subject subject will be used. If ``probability_map`` is not ``None``,
-        then ``label_name`` and ``label_probability`` are ignored.
-        Default = ``None``.
-    label_probabilities : Dict[int, float], optional
-        Dictionary containing the probability that each class will be sampled.
-        Probabilities do not need to be normalized. For example, a value of
-        {0: 0, 1: 2, 2: 1, 3: 1} will create a sampler whose patches centers
-        will have 50% probability of being labeled as 1, 25% of being 2 and 25%
-        of being 3. If None, the label map is binarized and the value is set to
-        {0: 0, 1: 1}. If the input has multiple channels, a value of
-        {0: 0, 1: 2, 2: 1, 3: 1} will create a sampler whose patches centers
-        will have 50% probability of being taken from a non zero value of
-        channel 1, 25% from channel 2 and 25% from channel 3. If
-        ``probability_map`` is not ``None``, then ``label_name`` and
-        ``label_probability`` are ignored. Default = ``None``.
-    max_length : int, optional
-        Maximum number of patches that can be stored in the queue. Using a
-        large number means that the queue needs to be filled less often, but
-        more CPU memory is needed to store the patches. Default = ``256``.
-    samples_per_volume : int, optional
-        Number of patches to extract from each volume. A small number of
-        patches ensures a large variability in the queue, but training will be
-        slower. Default = ``16``.
     batch_size : int, optional
-        How many patches per batch to load. Default = ``32``.
-    shuffle_subjects : bool, optional
-        Whether to shuffle the subjects dataset at the beginning of every epoch
-        (an epoch ends when all the patches from all the subjects have been
-        processed). Default = ``True``.
-    shuffle_patches : bool, optional
-        Whether to shuffle the patches queue at the beginning of every epoch.
-        Default = ``True``.
+        How many samples per batch to load. Default = ``32``.
+    shuffle : bool, optional
+        Whether to shuffle the data at every epoch. Default = ``False``.
     num_workers : int, optional
         How many subprocesses to use for data loading. ``0`` means that the
         data will be loaded in the main process. Default: ``0``.
     pin_memory : bool, optional
         If ``True``, the data loader will copy Tensors into CUDA pinned memory
         before returning them.
-    start_background : bool, optional
-        If ``True``, the loader will start working in the background as soon as
-        the queues are instantiated. Default = ``True``.
     drop_last : bool, optional
         Set to ``True`` to drop the last incomplete batch, if the dataset size
         is not divisible by the batch size. If ``False`` and the size of
@@ -132,8 +80,6 @@ class VisionPatchDataModule(BaseDataModule):
         RNG used by RandomSampler to generate random indexes and
         multiprocessing to generate `base_seed` for workers. Pass an int for
         reproducible output across multiple function calls. Default = ``41``.
-    verbose : bool, optional
-        If ``True``, print debugging messages. Default = ``False``.
     """
 
     #: Extra arguments for dataset_cls instantiation.
@@ -144,78 +90,6 @@ class VisionPatchDataModule(BaseDataModule):
     dims: List[int]
     #: Dataset name
     name: str
-
-    def __init__(
-        self,
-        *args: Any,
-        root: PathType = DATA_ROOT,
-        patch_size: SpatialShapeType,
-        train_transforms: Optional[Callable] = None,
-        val_transforms: Optional[Callable] = None,
-        test_transforms: Optional[Callable] = None,
-        probability_map: Optional[str] = None,
-        label_name: Optional[str] = None,
-        label_probabilities: Optional[Dict[int, float]] = None,
-        max_length: int = 256,
-        samples_per_volume: int = 16,
-        batch_size: int = 32,
-        shuffle_subjects: bool = True,
-        shuffle_patches: bool = True,
-        num_workers: int = 0,
-        pin_memory: bool = True,
-        start_background: bool = True,
-        drop_last: bool = False,
-        num_folds: int = 2,
-        val_split: Union[int, float] = 0.2,
-        seed: int = 41,
-        verbose: bool = False,
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(
-            *args,
-            root=root,
-            train_transforms=train_transforms,
-            val_transforms=val_transforms,
-            test_transforms=test_transforms,
-            batch_size=batch_size,
-            shuffle=shuffle_subjects,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
-            drop_last=drop_last,
-            num_folds=num_folds,
-            val_split=val_split,
-            seed=seed,
-            **kwargs,
-        )
-        # Init Sampler
-        both_something = probability_map is not None and label_name is not None
-        if both_something:
-            raise ValueError(
-                "Both 'probability_map' and 'label_name' cannot be not None ",
-                "at the same time",
-            )
-        if probability_map is None and label_name is None:
-            self.sampler = tio.UniformSampler(patch_size)
-        elif probability_map is not None:
-            self.sampler_type = tio.WeightedSampler(patch_size,
-                                                    probability_map)
-        else:
-            self.sampler_type = tio.LabelSampler(patch_size, label_name,
-                                                 label_probabilities)
-        self.patch_size = patch_size
-        self.probability_map = probability_map
-        self.label_name = label_name
-        self.label_probabilities = label_probabilities
-
-        # Queue parameters
-        self.train_queue: tio.Queue
-        self.val_queue: tio.Queue
-        self.max_length = max_length
-        self.samples_per_volume = samples_per_volume
-        self.shuffle_subjects = shuffle_subjects
-        self.shuffle_patches = shuffle_patches
-        self.start_background = start_background
-        self.verbose = verbose
 
     def prepare_data(self, *args: Any, **kwargs: Any) -> None:
         """Saves files to data root dir."""
@@ -250,33 +124,11 @@ class VisionPatchDataModule(BaseDataModule):
                                                 transform=val_transforms,
                                                 **self.EXTRA_ARGS)
 
-            self.train_queue = tio.Queue(
-                self.train_dataset,
-                max_length=self.max_length,
-                samples_per_volume=self.samples_per_volume,
-                sampler=self.sampler,
-                num_workers=self.num_workers,
-                shuffle_subjects=self.shuffle_subjects,
-                shuffle_patches=self.shuffle_patches,
-                start_background=self.start_background,
-                verbose=self.verbose)
-
-            self.val_queue = tio.Queue(
-                self.val_dataset,
-                max_length=self.max_length,
-                samples_per_volume=self.samples_per_volume,
-                sampler=self.sampler,
-                num_workers=self.num_workers,
-                shuffle_subjects=self.shuffle_subjects,
-                shuffle_patches=self.shuffle_patches,
-                start_background=self.start_background,
-                verbose=self.verbose)
-
-            self.validation = self.val_cls(train_dataset=self.train_queue,
-                                           val_dataset=self.val_queue,
+            self.validation = self.val_cls(train_dataset=self.train_dataset,
+                                           val_dataset=self.val_dataset,
                                            batch_size=self.batch_size,
-                                           shuffle=False,
-                                           num_workers=0,
+                                           shuffle=self.shuffle,
+                                           num_workers=self.num_workers,
                                            pin_memory=self.pin_memory,
                                            drop_last=self.drop_last,
                                            num_folds=self.num_folds,
