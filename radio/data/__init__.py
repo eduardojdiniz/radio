@@ -9,6 +9,9 @@ from .dataset import *
 from .datatypes import *
 from .datadecorators import *
 from .datautils import *
+from .visiondatamodule import *
+from .visionpatchdatamodule import *
+from .basedatamodule import *
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     from .visiondatamodule import *

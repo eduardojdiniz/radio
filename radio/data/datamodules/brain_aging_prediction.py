@@ -21,18 +21,19 @@ __all__ = ["BrainAgingPredictionDataModule", "plot_batch"]
 
 def plot_batch(batch: dict,
                num_imgs: int = 5,
-               slice_num: int = 120,
+               slice_num: int = None,
+               modalities: List[str] = [],
+               labels: List[str] = [],
+               exclude_keys: List[str] = [],
                train: bool = True) -> None:
     """plot images and labels from a batch of train images"""
-    modalities = ["T1w", "T2w", "FLAIR"]
-    labels = ["WMH"]
 
     images = {}
-    for modality in batch.keys():
-        if modality in modalities:
-            data = batch[modality]["data"]
+    for key in batch.keys():
+        if key not in exclude_keys:
+            data = batch[key]["data"]
             batch_size = data.shape[0]
-            images[modality] = data
+            images[key] = data
 
     num_imgs = min(num_imgs, batch_size)
     samples = random.sample(range(0, batch_size), num_imgs)
@@ -40,16 +41,25 @@ def plot_batch(batch: dict,
     num_images = len(images.keys())
     _, axs = plt.subplots(nrows=num_imgs, ncols=num_images, squeeze=False)
     for row_idx, img_idx in enumerate(samples):
-        for idx, (mod, data) in enumerate(images.items()):
+        for idx, (key, data) in enumerate(images.items()):
             # Plot images
             axis = axs[row_idx, idx]
             axis.set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
-            img = data[img_idx].permute(0, 3, 1, 2).numpy().squeeze()
-            if mod in modalities:
-                axis.imshow(img[slice_num, :, :], cmap="gray")
+            img = data[img_idx].permute(0, 3, 1, 2).numpy().squeeze(0)
+            if slice_num is None:
+                _slice = img.shape[0] // 2
+            if key in modalities:
+                if len(img.shape) == 3:
+                    axis.imshow(img[_slice, :, :], cmap="gray")
+                else:
+                    axis.imshow(img, cmap="gray")
             # Plot label
-            if mod in labels and train:
-                axis.imshow(img[0, slice_num, :, :], cmap="binary")
+            if key in labels and train:
+                # axis.imshow(img[0, _slice, :, :], cmap="binary")
+                if len(img.shape) == 3:
+                    axis.imshow(img[_slice, :, :], cmap="binary")
+                else:
+                    axis.imshow(img, cmap="gray")
 
     for column, modality in enumerate(images.keys()):
         plt.sca(axs[0, column])

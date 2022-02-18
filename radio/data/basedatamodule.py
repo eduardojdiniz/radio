@@ -13,11 +13,14 @@ from typing import Any, Callable, List, Optional, Type, Union
 from pathlib import Path
 import tempfile
 
+import torchio as tio
 import pytorch_lightning as pl
 from radio.settings.pathutils import DATA_ROOT, PathType
 from .validation import (TrainDataLoaderType, EvalDataLoaderType,
                          KFoldValidation, OneFoldValidation, ValidationType)
 from .dataset import DatasetType
+
+__all__ = ["BaseDataModule"]
 
 
 class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
@@ -99,6 +102,8 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
         self,
         *args: Any,
         root: PathType = DATA_ROOT,
+        train_subjects: Optional[List[tio.Subject]] = None,
+        test_subjects: Optional[List[tio.Subject]] = None,
         train_transforms: Optional[Callable] = None,
         val_transforms: Optional[Callable] = None,
         test_transforms: Optional[Callable] = None,
@@ -117,6 +122,8 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
         num_folds_msg = "``num_folds`` must be an integer of at least 2."
         assert isinstance(num_folds, int) and num_folds > 1, num_folds_msg
         self.root = Path(tempfile.mkdtemp()) if root is None else Path(root)
+        self.train_subjects = train_subjects
+        self.test_subjects = test_subjects
         self.is_temp_dir = bool(root is None)
         self.train_transforms = train_transforms
         self.val_transforms = val_transforms
