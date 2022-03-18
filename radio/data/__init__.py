@@ -4,6 +4,7 @@
 Data init
 """
 import warnings
+from .inference import *
 from .validation import *
 from .dataset import *
 from .datatypes import *

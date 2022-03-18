@@ -1,19 +1,23 @@
 #!/usr/bin/env python
 # coding=utf-8
 """
-Based on LightningDataModule for managing data. A datamodule is a shareable,
-reusable class that encapsulates all the steps needed to process data, i.e.,
-decoupling datasets from models to allow building dataset-agnostic models. They
-also allow you to share a full dataset without explaining how to download,
-split, transform, and process the data.
+Based on BaseDataModule for managing data. A vision datamodule that is
+shareable, reusable class that encapsulates all the steps needed to process
+data, i.e., decoupling datasets from models to allow building dataset-agnostic
+models. They also allow you to share a full dataset without explaining how to
+download, split, transform, and process the data.
 """
 
 from typing import Any, Callable, Dict, List, Optional, Union, Tuple
+from pathlib import Path
+import re
 import shutil
+from collections import OrderedDict
+from string import Template
 from torch.utils.data import DataLoader
+import numpy as np
 import torchio as tio  # type: ignore
-
-from radio.settings.pathutils import DATA_ROOT, PathType
+from radio.settings.pathutils import PathType
 from .validation import TrainDataLoaderType, EvalDataLoaderType
 from .datatypes import SpatialShapeType
 from .basedatamodule import BaseDataModule
@@ -48,7 +52,20 @@ class VisionPatchDataModule(BaseDataModule):
     Parameters
     ----------
     root : Path or str, optional
-        Root directory of dataset. Default = ``DATA_ROOT``.
+        Root to GPN's CEREBRO Studies folder.
+        Default = ``"/media/cerebro/Studies"``.
+    study : str, optional
+        Study name. Default = ``"Brain_Aging_Prediction"``.
+    data_dir : str, optional
+        Subdirectory where the data is located.
+        Default = ``"Public/data"``.
+    step : str, optional
+        Which processing step to use.
+        Default = ``''step01_structural_processing''``.
+    modalities : List[str], optional
+        Which modalilities to load. Default = ``['T1w']``.
+    labels : List[str], optional
+        Which labels to load. Default = ``[]``.
     patch_size : int or (int, int, int)
         Tuple of integers ``(w, h, d)`` to generate patches of size ``w x h x
         d``. If a single number ``n`` is provided, ``w = h = d = n``.
@@ -144,12 +161,17 @@ class VisionPatchDataModule(BaseDataModule):
     #: A tuple describing the shape of the data
     dims: List[int] = [256, 256, 256]
     #: Dataset name
-    name: str
+    name: str = "brain_aging_prediction"
 
     def __init__(
         self,
         *args: Any,
-        root: PathType = DATA_ROOT,
+        root: PathType = Path("/media/cerebro/Studies"),
+        study: str = "Brain_Aging_Prediction",
+        data_dir: str = "Public/data",
+        step: str = "step01_structural_processing",
+        modalities: Optional[List[str]] = None,
+        labels: Optional[List[str]] = None,
         train_subjects: Optional[List[tio.Subject]] = None,
         test_subjects: Optional[List[tio.Subject]] = None,
         patch_size: SpatialShapeType = 96,
@@ -175,6 +197,7 @@ class VisionPatchDataModule(BaseDataModule):
         verbose: bool = False,
         **kwargs: Any,
     ) -> None:
+        root = Path(root) / study / data_dir
         super().__init__(
             *args,
             root=root,
@@ -193,9 +216,13 @@ class VisionPatchDataModule(BaseDataModule):
             seed=seed,
             **kwargs,
         )
+        self.step = step
+        self.modalities = modalities if modalities is not None else ['T1w']
+        self.labels = labels if labels is not None else []
         self.use_augmentation = use_augmentation
+        self.train_sampler: tio.data.sampler.sampler.PatchSampler
 
-        # Init Sampler
+        # Init Train Sampler
         both_something = probability_map is not None and label_name is not None
         if both_something:
             raise ValueError(
@@ -203,14 +230,14 @@ class VisionPatchDataModule(BaseDataModule):
                 "at the same time",
             )
         if probability_map is None and label_name is None:
-            self.sampler = tio.UniformSampler(patch_size)
+            self.train_sampler = tio.UniformSampler(patch_size)
         elif probability_map is not None:
-            self.sampler_type = tio.WeightedSampler(patch_size,
-                                                    probability_map)
+            self.train_sampler = tio.WeightedSampler(patch_size,
+                                                     probability_map)
         else:
-            self.sampler_type = tio.LabelSampler(patch_size, label_name,
-                                                 label_probabilities)
-        self.patch_size = patch_size
+            self.train_sampler = tio.LabelSampler(patch_size, label_name,
+                                                  label_probabilities)
+
         self.probability_map = probability_map
         self.label_name = label_name
         self.label_probabilities = label_probabilities
@@ -255,21 +282,17 @@ class VisionPatchDataModule(BaseDataModule):
                 self.val_dataset = self.dataset_cls(self.train_subjects,
                                                     transform=val_transforms)
             else:
+                train_subjects = self.get_subjects()
                 self.train_dataset = self.dataset_cls(
-                    self.root,
-                    train=True,
-                    transform=train_transforms,
-                    **self.EXTRA_ARGS)
-                self.val_dataset = self.dataset_cls(self.root,
-                                                    train=True,
-                                                    transform=val_transforms,
-                                                    **self.EXTRA_ARGS)
+                    train_subjects, transform=train_transforms)
+                self.val_dataset = self.dataset_cls(train_subjects,
+                                                    transform=val_transforms)
 
             self.train_queue = tio.Queue(
                 self.train_dataset,
                 max_length=self.queue_max_length,
                 samples_per_volume=self.samples_per_volume,
-                sampler=self.sampler,
+                sampler=self.train_sampler,
                 num_workers=self.num_workers,
                 shuffle_subjects=self.shuffle_subjects,
                 shuffle_patches=self.shuffle_patches,
@@ -280,7 +303,7 @@ class VisionPatchDataModule(BaseDataModule):
                 self.val_dataset,
                 max_length=self.queue_max_length,
                 samples_per_volume=self.samples_per_volume,
-                sampler=self.sampler,
+                sampler=self.train_sampler,
                 num_workers=self.num_workers,
                 shuffle_subjects=self.shuffle_subjects,
                 shuffle_patches=self.shuffle_patches,
@@ -309,10 +332,10 @@ class VisionPatchDataModule(BaseDataModule):
                 test_dataset = self.dataset_cls(self.test_subjects,
                                                 transform=test_transforms)
             else:
-                test_dataset = self.dataset_cls(self.root,
-                                                train=False,
-                                                transform=test_transforms,
-                                                **self.EXTRA_ARGS)
+                test_subjects = self.get_subjects(train=False)
+                # dims.append([self.get_max_shape(test_subjects)])
+                test_dataset = self.dataset_cls(test_subjects,
+                                                transform=test_transforms)
             self.test_datasets.append(test_dataset)
             self.size_test = min([len(data) for data in self.test_datasets])
 
@@ -320,17 +343,195 @@ class VisionPatchDataModule(BaseDataModule):
             predict_transforms = self.default_transforms(
                 stage="predict"
             ) if self.test_transforms is None else self.test_transforms
-            predict_dataset = self.dataset_cls(self.root,
-                                               train=False,
-                                               transform=predict_transforms,
-                                               **self.EXTRA_ARGS)
+            if self.test_subjects is not None:
+                predict_dataset = self.dataset_cls(
+                    self.test_subjects, transform=predict_transforms)
+            else:
+                predict_subjects = self.get_subjects(train=False)
+                # dims.append([self.get_max_shape(test_subjects)])
+                predict_dataset = self.dataset_cls(
+                    predict_subjects, transform=predict_transforms)
             self.predict_datasets.append(predict_dataset)
             self.size_predict = min(
                 [len(data) for data in self.predict_datasets])
 
+    def get_paths(self) -> OrderedDict[Tuple[str, str], Path]:
+        """
+        Get subject and scan IDs and the respective paths from the study data
+        directory.
+
+        Returns
+        -------
+        _ : Tuple[List[Path], List[Path]]
+            Paths to train images and labels.
+        """
+        paths = OrderedDict()
+        # 6-digit subject ID, followed by 6-digit scan ID
+        subj_regex = r"[a-zA-z]{3}_[a-zA-Z]{2}_\d{4}"
+        scan_regex = r"[a-zA-z]{4}\d{3}"
+        regex = re.compile("(" + subj_regex + ")" + "/" + "(" + subj_regex +
+                           "_" + scan_regex + ")")
+        for item in self.root.glob("*/*"):
+            if item.is_dir() and not item.name.startswith('.'):
+                match = regex.search(str(item))
+                if match is not None:
+                    subj_id, scan_id = match.groups()
+                    paths[(subj_id, scan_id)] = self.root / subj_id / scan_id
+
+        return paths
+
+    @staticmethod
+    def split_dict(dictionary: OrderedDict,
+                   test_split: Union[int, float] = 0.2,
+                   shuffle: bool = True,
+                   seed: int = 41) -> Tuple[OrderedDict, OrderedDict]:
+        """Split dict into two."""
+        len_dict = len(dictionary)
+        if isinstance(test_split, int):
+            train_len = len_dict - test_split
+            splits = [train_len, test_split]
+        elif isinstance(test_split, float):
+            test_len = int(np.floor(test_split * len_dict))
+            train_len = len_dict - test_len
+            splits = [train_len, test_len]
+        else:
+            raise ValueError(f"Unsupported type {type(test_split)}")
+        indexes = list(range(len_dict))
+        if shuffle:
+            np.random.seed(seed)
+            np.random.shuffle(indexes)
+        train_idx, test_idx = indexes[:splits[0]], indexes[:splits[1]]
+
+        dictionary_list = list(dictionary.items())
+
+        train_dict = OrderedDict([
+            value for idx, value in enumerate(dictionary_list)
+            if idx in train_idx
+        ])
+        test_dict = OrderedDict([
+            value for idx, value in enumerate(dictionary_list)
+            if idx in test_idx
+        ])
+        return train_dict, test_dict
+
+    def get_subject_dicts(
+        self,
+        step: str = 'step01_structural_processing',
+        modalities: Optional[List[str]] = None,
+        labels: Optional[List[str]] = None,
+    ) -> Tuple[OrderedDict[Tuple[str, str], dict], OrderedDict[Tuple[str, str],
+                                                               dict]]:
+        """
+        Get paths to nii files for train images and labels.
+
+        Returns
+        -------
+        _ : Tuple[List[Path], List[Path]]
+            Paths to train images and labels.
+        """
+        mod2template = {
+            "T1w": Template('wstrip_m${scan_id}_T1.nii'),
+            "FLAIR": Template('wstrip_mr${scan_id}_FLAIR.nii'),
+        }
+
+        label2template: Dict[str, Template] = {}
+
+        if labels is None:
+            labels = []
+        if modalities is None:
+            modalities = ['T1w']
+
+        for mod in modalities:
+            assert mod in mod2template
+
+        for label in labels:
+            assert label in label2template
+
+        paths_dict = self.get_paths()
+        train_paths_dict, test_paths_dict = self.split_dict(
+            paths_dict, shuffle=self.shuffle, seed=self.seed)
+        training_dict = OrderedDict()
+        testing_dict = OrderedDict()
+
+        # Get training dict
+        for (subj_id, scan_id), path in train_paths_dict.items():
+            training_dict[(subj_id, scan_id)] = {
+                "subj_id": subj_id,
+                "scan_id": scan_id
+            }
+            for mod in modalities:
+                mod_path = path / step / mod2template[mod].substitute(
+                    scan_id=scan_id)
+                if mod_path.is_file():
+                    training_dict[(subj_id, scan_id)].update(
+                        {mod: tio.ScalarImage(mod_path)})
+                else:
+                    training_dict.pop((subj_id, scan_id), None)
+
+            for label in labels:
+                label_path = path / step / label2template[label].substitute(
+                    scan_id=scan_id)
+                if label_path.is_file():
+                    training_dict[(subj_id, scan_id)].update(
+                        {label: tio.LabelMap(label_path)})
+                else:
+                    training_dict.pop((subj_id, scan_id), None)
+
+        # Get testing dict
+        for (subj_id, scan_id), path in test_paths_dict.items():
+            testing_dict[(subj_id, scan_id)] = {
+                "subj_id": subj_id,
+                "scan_id": scan_id
+            }
+            for mod in modalities:
+                mod_path = path / step / mod2template[mod].substitute(
+                    scan_id=scan_id)
+                if mod_path.is_file():
+                    testing_dict[(subj_id, scan_id)].update(
+                        {mod: tio.ScalarImage(mod_path)})
+                else:
+                    testing_dict.pop((subj_id, scan_id), None)
+
+        return training_dict, testing_dict
+
+    def get_subjects(self, train: bool = True) -> List[tio.Subject]:
+        """
+        Get TorchIO Subject train and test subjects.
+
+        Parameters
+        ----------
+        train : bool, optional
+            If True, return a loader for the train dataset, else for the
+            validation dataset. Default = ``True``.
+
+        Returns
+        -------
+        _ : List[tio.Subject]
+            TorchIO Subject train or test subjects.
+        """
+        if train:
+            training_dict, _ = self.get_subject_dicts(
+                step=self.step, modalities=self.modalities, labels=self.labels)
+            train_subjects = []
+            for _, subject_dict in training_dict.items():
+                # 'image' and 'label' are arbitrary names for the images
+                subject = tio.Subject(subject_dict)
+                train_subjects.append(subject)
+            return train_subjects
+
+        _, testing_dict = self.get_subject_dicts(step=self.step,
+                                                 modalities=self.modalities,
+                                                 labels=self.labels)
+        test_subjects = []
+        for _, subject_dict in testing_dict.items():
+            subject = tio.Subject(subject_dict)
+            test_subjects.append(subject)
+
+        return test_subjects
+
     @staticmethod
     def get_preprocessing_transforms(
-            size: Union[int, Tuple[int, int, int]] = 256) -> Callable:
+            size: Union[int, Tuple[int, int, int]] = 256) -> tio.Transform:
         """
         Get preprocessing transorms to apply to all subjects.
 
@@ -352,7 +553,7 @@ class VisionPatchDataModule(BaseDataModule):
         return tio.Compose(preprocess_list)
 
     @staticmethod
-    def get_augmentation_transforms() -> Callable:
+    def get_augmentation_transforms() -> tio.Transform:
         """"
         Get augmentation transorms to apply to subjects during training.
 
@@ -434,7 +635,7 @@ class VisionPatchDataModule(BaseDataModule):
             dataloaders.append(
                 DataLoader(
                     dataset=self.test_datasets[idx],
-                    batch_size=self.batch_size,
+                    batch_size=1,
                     num_workers=self.num_workers,
                     pin_memory=self.pin_memory,
                     drop_last=self.drop_last,
@@ -457,7 +658,7 @@ class VisionPatchDataModule(BaseDataModule):
             dataloaders.append(
                 DataLoader(
                     dataset=self.test_datasets[idx],
-                    batch_size=self.batch_size,
+                    batch_size=1,
                     num_workers=self.num_workers,
                     pin_memory=self.pin_memory,
                     drop_last=self.drop_last,

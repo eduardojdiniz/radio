@@ -18,3 +18,11 @@ max-attributes=25
 
 # Maximum number of return statements for function/method.
 max-returns=10
+
+[MESSAGES COTROL]
+disable=
+  too-many-instance-attributes,
+  too-many-branches,
+  too-many-locals,
+  too-few-public-methods,
+  no-init,
