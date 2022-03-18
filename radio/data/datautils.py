@@ -4,16 +4,17 @@
 Data related utilities.
 """
 
+from typing import Any, List, Optional, Tuple, Iterable, TypeVar, Dict
 import hashlib
 import os.path
 import traceback
+import random
 from os.path import join as pjoin
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Iterable, TypeVar
-
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 import torch
+import torchio as tio
 import torchvision.transforms as T  # type: ignore
 from PIL import Image
 from .datatypes import Tensors, SeqSeqTensor
@@ -27,6 +28,7 @@ __all__ = [
     "default_image_loader",
     "denormalize",
     "plot",
+    "plot_batch",
     "load_standard_test_imgs",
     "check_integrity",
 ]
@@ -54,6 +56,58 @@ def get_first_batch(loader: Iterable,
     for batch in loader:
         return batch
     return default
+
+
+def plot_batch(
+    batch: Dict,
+    num_samples: int = 5,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -> None:
+    """plot images and labels from a batch of images"""
+    # Create subjects dataset from batch
+    batch_size = len(batch)
+    samples_idx = random.sample(
+        range(0, batch_size),
+        min(num_samples, batch_size),
+    )
+    dataset = tio.SubjectsDataset.from_batch(batch)
+
+    # Keep only samples_idx subjects in the dataset
+    dataset._subjects = [
+        subject for idx, subject in enumerate(dataset._subjects)
+        if idx in samples_idx
+    ]
+
+    # Parse intensities, labels and exclude_keys
+    exclude_keys = exclude_keys if exclude_keys else []
+    # # Assumes all subjects hold the same tio.IMAGE's
+    intensities_in_subj = list(
+        dataset[0].get_images_dict(intensity_only=True).keys())
+    labels_in_subj = list(dataset[0].get_images_dict(
+        intensity_only=False, exclude=intensities_in_subj).keys())
+    intensities_in_subj = [
+        intensity for intensity in intensities_in_subj
+        if intensity not in exclude_keys
+    ]
+    labels_in_subj = [
+        label for label in labels_in_subj if label not in exclude_keys
+    ]
+    intensities = intensities if intensities else intensities_in_subj
+    labels = labels if labels else labels_in_subj
+
+    # Filter images from dataset
+    for _, subject in enumerate(dataset):
+        for image_name in subject.get_images_names():
+            if image_name not in intensities or image_name not in labels:
+                subject.remove_image(image_name)
+
+    # Plot subjects
+    for row_idx, subject in enumerate(dataset):
+        print(f"Subject: {row_idx}")
+        subject.plot()
+        print("\n")
 
 
 def default_image_loader(path: Path) -> Image.Image:

@@ -9,7 +9,7 @@ split, transform, and process the data.
 """
 
 from abc import abstractmethod
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Optional, Tuple
 import shutil
 from torch.utils.data import DataLoader
 
@@ -89,7 +89,7 @@ class VisionDataModule(BaseDataModule):
     #: Dataset class to use. E.g., torchvision.datasets.MNIST
     dataset_cls: type
     #: A tuple describing the shape of the data
-    dims: List[int]
+    dims: Tuple[int, int, int]
     #: Dataset name
     name: str
 
