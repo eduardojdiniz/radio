@@ -34,6 +34,7 @@ GenericEvalDataLoaderType = Union[Type, Sequence[Type]]
 
 TrainDataLoaderType = GenericTrainDataLoaderType[DataLoader]
 EvalDataLoaderType = GenericEvalDataLoaderType[DataLoader]
+DataLoaderType = GenericTrainDataLoaderType[DataLoader]
 
 WorkerInitFnType = Callable[[int], None]
 
@@ -45,7 +46,7 @@ CollateFnType = Callable[[List[Type]], Any]
 
 __all__ = [
     "KFoldValidation", "OneFoldValidation", "TrainDataLoaderType",
-    "EvalDataLoaderType", "ValidationType"
+    "DataLoaderType", "EvalDataLoaderType", "ValidationType"
 ]
 
 

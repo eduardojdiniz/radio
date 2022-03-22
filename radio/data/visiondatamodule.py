@@ -89,7 +89,7 @@ class VisionDataModule(BaseDataModule):
     #: Dataset class to use. E.g., torchvision.datasets.MNIST
     dataset_cls: type
     #: A tuple describing the shape of the data
-    dims: Tuple[int, int, int]
+    dims: Optional[Tuple[int, int, int]]
     #: Dataset name
     name: str
 
@@ -137,6 +137,7 @@ class VisionDataModule(BaseDataModule):
                                            seed=self.seed)
 
             self.validation.setup(self.val_split)
+            self.has_validation = True
             self.size_train = self.validation.size_train
             self.size_val = self.validation.size_val
 
@@ -191,7 +192,20 @@ class VisionDataModule(BaseDataModule):
         _ : Collection of DataLoader
             Collection of train dataloaders specifying training samples.
         """
-        return self.validation.train_dataloader()
+        if self.has_validation:
+            return self.validation.train_dataloader()
+        dataloaders = []
+        num_dataloaders = len(self.train_datasets)
+        for idx in range(num_dataloaders):
+            dataloaders.append(
+                DataLoader(
+                    dataset=self.train_datasets[idx],
+                    batch_size=self.batch_size,
+                    num_workers=self.num_workers,
+                    pin_memory=self.pin_memory,
+                    drop_last=self.drop_last,
+                ))
+        return dataloaders
 
     def val_dataloader(self, *args: Any, **kwargs: Any) -> EvalDataLoaderType:
         """
@@ -202,7 +216,20 @@ class VisionDataModule(BaseDataModule):
         _ : Collection of DataLoader
             Collection of validation dataloaders specifying validation samples.
         """
-        return self.validation.val_dataloader()
+        if self.has_validation:
+            return self.validation.val_dataloader()
+        dataloaders = []
+        num_dataloaders = len(self.val_datasets)
+        for idx in range(num_dataloaders):
+            dataloaders.append(
+                DataLoader(
+                    dataset=self.val_datasets[idx],
+                    batch_size=self.batch_size,
+                    num_workers=self.num_workers,
+                    pin_memory=self.pin_memory,
+                    drop_last=self.drop_last,
+                ))
+        return dataloaders
 
     def test_dataloader(self, *args: Any, **kwargs: Any) -> EvalDataLoaderType:
         """

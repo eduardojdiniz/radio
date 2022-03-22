@@ -139,8 +139,11 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
         self.val_split = val_split
         self.seed = seed
         self.validation: ValidationType
+        self.has_validation = False
         self.train_dataset: DatasetType
+        self.train_datasets: List[DatasetType] = []
         self.val_dataset: DatasetType
+        self.val_datasets: List[DatasetType] = []
         self.test_datasets: List[DatasetType] = []
         self.predict_datasets: List[DatasetType] = []
         self.size_train: Optional[int] = None

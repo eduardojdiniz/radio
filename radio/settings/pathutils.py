@@ -95,5 +95,6 @@ def ensure_exists(path: PathType) -> Path:
     Enforce the directory existence.
     """
     path = Path(path)
+    path = path.expanduser()
     path.mkdir(parents=True, exist_ok=True)
     return path
