@@ -5,10 +5,11 @@ Sample  Variables and Types definition.
 """
 
 from __future__ import annotations
+from pathlib import Path
 from typing import (Dict, Generic, List, Mapping, Sequence, TypeVar, Union,
-                    cast, Tuple)
+                    cast, Tuple, Any)
 from dataclasses import dataclass, astuple, field, InitVar
-
+from collections import OrderedDict
 import matplotlib.pyplot as plt  # type: ignore
 import torch
 from PIL import Image
@@ -24,6 +25,8 @@ NAMED_SAMPLES = [
 
 TripletIntType = Tuple[int, int, int]
 SpatialShapeType = Union[int, TripletIntType]
+SubjPathType = OrderedDict[Tuple[str, str], Path]
+SubjDictType = OrderedDict[Tuple[str, str], OrderedDict[str, Any]]
 
 # ############
 # Sample Types

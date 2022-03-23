@@ -15,11 +15,9 @@ from radio.settings.pathutils import is_dir_or_symlink, PathType, ensure_exists
 from ..visiondatamodule import VisionDataModule
 from ..validation import DataLoaderType
 from ..datautils import get_subjects_from_batch
+from ..datatypes import SubjPathType, SubjDictType
 
 __all__ = ["BrainAgingPredictionDataModule"]
-
-SubjPathType = OrderedDict[Tuple[str, str], Path]
-SubjDictType = OrderedDict[Tuple[str, str], OrderedDict[str, Any]]
 
 
 class BrainAgingPredictionDataModule(VisionDataModule):
@@ -97,6 +95,8 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         RNG used by RandomSampler to generate random indexes and
         multiprocessing to generate `base_seed` for workers. Pass an int for
         reproducible output across multiple function calls. Default = ``41``.
+    verbose : bool, optional
+        If ``True``, print debugging messages. Default = ``False``.
     """
     name: str = "brain_aging_prediction"
     dataset_cls = tio.SubjectsDataset
@@ -130,6 +130,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         labels: Optional[List[str]] = None,
         dims: Tuple[int, int, int] = (160, 192, 160),
         seed: int = 41,
+        verbose: bool = False,
         **kwargs: Any,
     ) -> None:
         root = Path(root).expanduser() / study / data_dir
@@ -158,6 +159,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         self.use_augmentation = use_augmentation
         self.use_preprocessing = use_preprocessing
         self.resample = resample
+        self.verbose = verbose
 
         # Data folder flags to check if data is splitted already
         self.has_complete_split: bool
@@ -224,17 +226,19 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
             if not self.has_train_val_split:
                 train_subjects = self.get_subjects(fold="train")
-                self.train_dataset = self.dataset_cls(
+                train_dataset = self.dataset_cls(
                     train_subjects,
                     transform=train_transforms,
                 )
-                self.val_dataset = self.dataset_cls(
+                self.train_datasets.append(train_dataset)
+                val_dataset = self.dataset_cls(
                     train_subjects,
                     transform=val_transforms,
                 )
+                self.val_datasets.append(val_dataset)
                 self.validation = self.val_cls(
-                    train_dataset=self.train_dataset,
-                    val_dataset=self.val_dataset,
+                    train_dataset=self.train_datasets[0],
+                    val_dataset=self.val_datasets[0],
                     batch_size=self.batch_size,
                     shuffle=self.shuffle,
                     num_workers=self.num_workers,
@@ -488,13 +492,13 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         self,
         shape: Optional[Tuple[int, int, int]] = None,
         resample: bool = False,
-    ) -> tio.transforms.Compose:
+    ) -> tio.Transform:
         """
         Get preprocessing transorms to apply to all subjects.
 
         Returns
         -------
-        preprocess : tio.transforms.Compose
+        preprocess : tio.Transform
             All preprocessing steps that should be applied to all subjects.
         """
         preprocess_list: List[tio.transforms.Transform] = []
@@ -523,13 +527,13 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         return tio.Compose(preprocess_list)
 
     @staticmethod
-    def get_augmentation_transforms() -> tio.transforms.Compose:
+    def get_augmentation_transforms() -> tio.Transform:
         """"
         Get augmentation transorms to apply to subjects during training.
 
         Returns
         -------
-        augment : tio.transforms.Compose
+        augment : tio.Transform
             All augmentation steps that should be applied to subjects during
             training.
         """
@@ -545,7 +549,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
     def default_transforms(
         self,
         stage: Optional[str] = None,
-    ) -> tio.transforms.Compose:
+    ) -> tio.Transform:
         """
         Default transforms and augmentations for the dataset.
 
@@ -557,7 +561,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
         Returns
         -------
-        _: tio.transforms.Compose
+        _: tio.Transform
             All preprocessing steps (and if ``'fit'``, augmentation steps too)
             that should be applied to the subjects.
         """
