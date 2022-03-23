@@ -10,31 +10,19 @@ every epoch to reduce model overfitting, use Python's ``multiprocessing``
 to speed up data retrieval, and automatic memory pinning, in an easy API.
 """
 
-from typing import (Any, Callable, List, TypeVar, Iterator, Tuple, Union, Dict,
-                    Sequence, Optional)
+from typing import (Any, Callable, List, TypeVar, Iterator, Tuple, Union, Optional)
 import numpy as np
 from sklearn.model_selection import KFold  # type: ignore
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import SubsetRandomSampler
 from radio.data.dataset import DatasetType
+from .datatypes import GenericEvalType, GenericTrainType
 
 Type = TypeVar("Type")
 
-GenericTrainDataLoaderType = (Union[(
-    Type,
-    Sequence[Type],
-    Sequence[Sequence[Type]],
-    Sequence[Dict[str, Type]],
-    Dict[str, Type],
-    Dict[str, Dict[str, Type]],
-    Dict[str, Sequence[Type]],
-)])
-GenericEvalDataLoaderType = Union[Type, Sequence[Type]]
-
-TrainDataLoaderType = GenericTrainDataLoaderType[DataLoader]
-EvalDataLoaderType = GenericEvalDataLoaderType[DataLoader]
-DataLoaderType = GenericTrainDataLoaderType[DataLoader]
+TrainDataLoaderType = GenericTrainType[DataLoader]
+EvalDataLoaderType = GenericEvalType[DataLoader]
 
 WorkerInitFnType = Callable[[int], None]
 
@@ -46,7 +34,7 @@ CollateFnType = Callable[[List[Type]], Any]
 
 __all__ = [
     "KFoldValidation", "OneFoldValidation", "TrainDataLoaderType",
-    "DataLoaderType", "EvalDataLoaderType", "ValidationType"
+    "EvalDataLoaderType", "ValidationType"
 ]
 
 
@@ -95,7 +83,6 @@ class KFoldValidation:
         multiprocessing to generate `base_seed` for workers. Pass an int for
         reproducible output across multiple function calls. Default = ``41``.
     """
-
     def __init__(
         self,
         train_dataset: DatasetType,
@@ -110,10 +97,11 @@ class KFoldValidation:
         num_folds: int = 5,
         seed: int = 41,
     ) -> None:
-        self.train_dataset = train_dataset
+
         if val_dataset:
             msg = "len of val_dataset must be the same len of train_dataset."
             assert len(train_dataset) == len(val_dataset), msg
+        self.train_dataset = train_dataset
         self.val_dataset = val_dataset if val_dataset else train_dataset
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -324,7 +312,6 @@ class OneFoldValidation:
         num_folds: int = 2,
         seed: int = 41,
     ) -> None:
-        self.train_dataset = train_dataset
         if val_dataset:
             msg = "len of val_dataset must be the same len of train_dataset."
             assert len(train_dataset) == len(val_dataset), msg
@@ -332,6 +319,7 @@ class OneFoldValidation:
             print(
                 ("Warning: ``num_folds`` provided but will not be used. ",
                  "``num_folds`` is set to ``2``, i.e., train and val folds."))
+        self.train_dataset = train_dataset
         self.val_dataset = val_dataset if val_dataset else train_dataset
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -428,8 +416,10 @@ class OneFoldValidation:
         _ : Collection of DataLoader
             Collection of train dataloaders specifying training samples.
         """
-        dataloaders = []
         num_dataloaders = len(self.train_samplers)
+        if num_dataloaders == 1:
+            return self._get_dataloader(0)
+        dataloaders = []
         for idx in range(num_dataloaders):
             dataloaders.append(self._get_dataloader(idx))
         return dataloaders
@@ -443,8 +433,10 @@ class OneFoldValidation:
         _ : Collection of DataLoaders
             Collection of validation dataloaders specifying validation samples.
         """
-        dataloaders = []
         num_dataloaders = len(self.val_samplers)
+        if num_dataloaders == 1:
+            return self._get_dataloader(0, train=False)
+        dataloaders = []
         for idx in range(num_dataloaders):
             dataloaders.append(self._get_dataloader(idx, train=False))
         return dataloaders

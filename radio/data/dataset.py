@@ -22,18 +22,22 @@ import sys
 from abc import ABCMeta, abstractmethod
 from itertools import zip_longest
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
+from typing import (Any, Callable, Dict, List, Optional, Tuple, Union, cast)
 from torch.utils.data import Dataset
 from torchvision.datasets.vision import VisionDataset  # type: ignore
 from radio.settings.pathutils import (DATA_ROOT, IMG_EXTENSIONS,
                                       is_dir_or_symlink, PathType,
                                       is_valid_extension)
 from .datautils import default_image_loader
+from .datatypes import GenericEvalType, GenericTrainType
 
 Sample = List[Tuple[Path, int]]
 OneSample = Union[Dict[str, Tuple[Any, ...]], Tuple[Any, ...]]
 
-__all__ = ["DatasetType", "BaseVisionDataset", "FolderDataset", "ImageFolder"]
+__all__ = [
+    "DatasetType", "EvalDatasetType", "TrainDatasetType", "BaseVisionDataset",
+    "FolderDataset", "ImageFolder"
+]
 
 
 def find_classes(directory: Path) -> Tuple[List[str], Dict[str, int]]:
@@ -498,3 +502,5 @@ class ImageFolder(FolderDataset):
 
 
 DatasetType = Union[Dataset, BaseVisionDataset]
+TrainDatasetType = GenericTrainType[DatasetType]
+EvalDatasetType = GenericEvalType[DatasetType]

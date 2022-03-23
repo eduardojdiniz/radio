@@ -9,12 +9,13 @@ split, transform, and process the data.
 """
 
 from abc import abstractmethod
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Mapping, Optional, Sequence, Sized
 import shutil
-from torch.utils.data import DataLoader
-
+from torch.utils.data import DataLoader, IterableDataset
+from .dataset import DatasetType
 from .validation import TrainDataLoaderType, EvalDataLoaderType
 from .basedatamodule import BaseDataModule
+from .datatypes import TrainSizeType, EvalSizeType
 
 __all__ = ["VisionDataModule"]
 
@@ -36,10 +37,10 @@ class VisionDataModule(BaseDataModule):
 
     Typical Workflow
     ----------------
-    datamodule = VisionDataModule()
-    datamodule.prepare_data() # download
-    datamodule.setup(stage) # process and split
-    datamodule.teardown(stage) # clean-up
+    data = VisionDataModule()
+    data.prepare_data() # download
+    data.setup(stage) # process and split
+    data.teardown(stage) # clean-up
 
     Parameters
     ----------
@@ -84,15 +85,6 @@ class VisionDataModule(BaseDataModule):
         reproducible output across multiple function calls. Default = ``41``.
     """
 
-    #: Extra arguments for dataset_cls instantiation.
-    EXTRA_ARGS: dict = {}
-    #: Dataset class to use. E.g., torchvision.datasets.MNIST
-    dataset_cls: type
-    #: A tuple describing the shape of the data
-    dims: Optional[Tuple[int, int, int]]
-    #: Dataset name
-    name: str
-
     def prepare_data(self, *args: Any, **kwargs: Any) -> None:
         """Saves files to data root dir."""
         self.dataset_cls(self.root, train=True, download=True)
@@ -105,10 +97,10 @@ class VisionDataModule(BaseDataModule):
         Parameters
         ----------
         stage: Optional[str]
-            Either ``'fit``, ``'validate'``, ``'test'``, or ``'predict'``.
+            Either ``'fit``, ``'validate'``, or ``'test'``.
             If stage = None, set-up all stages. Default = None.
         """
-        if stage == "fit" or stage is None:
+        if stage in (None, "fit"):
             train_transforms = self.default_transforms(
                 stage="fit"
             ) if self.train_transforms is None else self.train_transforms
@@ -117,17 +109,17 @@ class VisionDataModule(BaseDataModule):
                 stage="fit"
             ) if self.val_transforms is None else self.val_transforms
 
-            self.train_dataset = self.dataset_cls(self.root,
-                                                  train=True,
-                                                  transform=train_transforms,
-                                                  **self.EXTRA_ARGS)
-            self.val_dataset = self.dataset_cls(self.root,
-                                                train=True,
-                                                transform=val_transforms,
-                                                **self.EXTRA_ARGS)
+            train_dataset = self.dataset_cls(self.root,
+                                             train=True,
+                                             transform=train_transforms,
+                                             **self.EXTRA_ARGS)
+            val_dataset = self.dataset_cls(self.root,
+                                           train=True,
+                                           transform=val_transforms,
+                                           **self.EXTRA_ARGS)
 
-            self.validation = self.val_cls(train_dataset=self.train_dataset,
-                                           val_dataset=self.val_dataset,
+            self.validation = self.val_cls(train_dataset=train_dataset,
+                                           val_dataset=val_dataset,
                                            batch_size=self.batch_size,
                                            shuffle=self.shuffle,
                                            num_workers=self.num_workers,
@@ -138,31 +130,23 @@ class VisionDataModule(BaseDataModule):
 
             self.validation.setup(self.val_split)
             self.has_validation = True
-            self.size_train = self.validation.size_train
-            self.size_val = self.validation.size_val
 
-        if stage == "test" or stage is None:
+            self.train_dataset = train_dataset
+            self.size_train = self.size_train_dataset(
+                self.validation.train_samplers)
+            self.val_dataset = val_dataset
+            self.size_val = self.size_eval_dataset(
+                self.validation.val_samplers)
+
+        if stage in (None, "test"):
             test_transforms = self.default_transforms(
                 stage="test"
             ) if self.test_transforms is None else self.test_transforms
-            test_dataset = self.dataset_cls(self.root,
-                                            train=False,
-                                            transform=test_transforms,
-                                            **self.EXTRA_ARGS)
-            self.test_datasets.append(test_dataset)
-            self.size_test = min([len(data) for data in self.test_datasets])
-
-        if stage == "predict" or stage is None:
-            predict_transforms = self.default_transforms(
-                stage="predict"
-            ) if self.test_transforms is None else self.test_transforms
-            predict_dataset = self.dataset_cls(self.root,
-                                               train=False,
-                                               transform=predict_transforms,
-                                               **self.EXTRA_ARGS)
-            self.predict_datasets.append(predict_dataset)
-            self.size_predict = min(
-                [len(data) for data in self.predict_datasets])
+            self.test_dataset = self.dataset_cls(self.root,
+                                                 train=False,
+                                                 transform=test_transforms,
+                                                 **self.EXTRA_ARGS)
+            self.size_test = self.size_eval_dataset(self.test_dataset)
 
     @abstractmethod
     def default_transforms(self, stage: Optional[str] = None) -> Callable:
@@ -172,7 +156,7 @@ class VisionDataModule(BaseDataModule):
         Parameters
         ----------
         stage: Optional[str]
-            Either ``'fit``, ``'validate'``, ``'test'``, or ``'predict'``.
+            Either ``'fit``, ``'validate'``, or ``'test'``.
             If stage = None, set-up all stages. Default = None.
 
         Returns
@@ -181,6 +165,114 @@ class VisionDataModule(BaseDataModule):
             All preprocessing steps (and if ``'fit'``, augmentation steps too)
             that should be applied to the images.
         """
+
+    @staticmethod
+    def size_train_dataset(train_dataset: Sized) -> TrainSizeType:
+        """
+        Compute the size of the train datasets.
+
+        Parameters
+        ----------
+        train_dataset: TrainDatasetType
+            Collection of train datasets.
+
+        Returns
+        -------
+        _ : TrainSizeType
+            Collection of train datasets' sizes.
+        """
+
+        def _handle_is_mapping(dataset):
+            mapping = {}
+            for key, dset in dataset.items():
+                if isinstance(dset, Mapping):
+                    mapping[key] = _handle_is_mapping(dset)
+                if isinstance(dset, Sequence):
+                    mapping[key] = _handle_is_sequence(dset)
+                mapping[key] = len(dset)
+            return mapping
+
+        def _handle_is_sequence(dataset):
+            sequence = []
+            for dset in dataset:
+                if isinstance(dset, Mapping):
+                    sequence.append(_handle_is_mapping(dset))
+                if isinstance(dset, Sequence):
+                    sequence.append(_handle_is_sequence(dset))
+                sequence.append(len(dset))
+            return sequence
+
+        if isinstance(train_dataset, Mapping):
+            return _handle_is_mapping(train_dataset)
+        if isinstance(train_dataset, Sequence):
+            return _handle_is_sequence(train_dataset)
+        return len(train_dataset)
+
+    @staticmethod
+    def size_eval_dataset(eval_dataset: Sized) -> EvalSizeType:
+        """
+        Compute the size of the test or validation datasets.
+
+        Parameters
+        ----------
+        eval_dataset: EvalDatasetType
+            Collection of test or validation datasets.
+
+        Returns
+        -------
+        _ : EvalSizeType
+            Collection of test or validation datasets' sizes.
+        """
+        if isinstance(eval_dataset, Sequence):
+            if len(eval_dataset) == 1:
+                return len(eval_dataset[0])
+            return [len(ds) for ds in eval_dataset]
+        return len(eval_dataset)
+
+    def dataloader(
+        self,
+        dataset: DatasetType,
+        batch_size: Optional[int] = None,
+        shuffle: Optional[bool] = None,
+        num_workers: Optional[int] = None,
+        pin_memory: Optional[bool] = None,
+        drop_last: Optional[bool] = None,
+    ) -> DataLoader:
+        """
+        Instantiate a DataLoader.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            How many samples per batch to load. Default = ``32``.
+        shuffle : bool, optional
+            Whether to shuffle the data at every epoch. Default = ``False``.
+        num_workers : int, optional
+            How many subprocesses to use for data loading. ``0`` means that the
+            data will be loaded in the main process. Default: ``0``.
+        pin_memory : bool, optional
+            If ``True``, the data loader will copy Tensors into CUDA pinned
+            memory before returning them.
+        drop_last : bool, optional
+            Set to ``True`` to drop the last incomplete batch, if the dataset
+            size is not divisible by the batch size. If ``False`` and the size
+            of dataset is not divisible by the batch size, then the last batch
+            will be smaller. Default = ``False``.
+
+        Returns
+        -------
+        _ : DataLoader
+        """
+        shuffle = shuffle if shuffle else self.shuffle
+        shuffle &= not isinstance(dataset, IterableDataset)
+        return DataLoader(
+            dataset=dataset,
+            batch_size=batch_size if batch_size else self.batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers if num_workers else self.num_workers,
+            pin_memory=pin_memory if pin_memory else self.pin_memory,
+            drop_last=drop_last if drop_last else self.drop_last,
+        )
 
     def train_dataloader(self, *args: Any,
                          **kwargs: Any) -> TrainDataLoaderType:
@@ -192,20 +284,41 @@ class VisionDataModule(BaseDataModule):
         _ : Collection of DataLoader
             Collection of train dataloaders specifying training samples.
         """
+        loader_kwargs = {}
+        loader_kwargs["batch_size"] = kwargs.get("batch_size", None)
+        loader_kwargs["shuffle"] = kwargs.get("shuffle", None)
+        loader_kwargs["num_workers"] = kwargs.get("num_workers", None)
+        loader_kwargs["pin_memory"] = kwargs.get("pin_memory", None)
+        loader_kwargs["drop_last"] = kwargs.get("drop_last", None)
+
+        def _handle_is_mapping(dataset):
+            mapping = {}
+            for key, dset in dataset.items():
+                if isinstance(dset, Mapping):
+                    mapping[key] = _handle_is_mapping(dset)
+                if isinstance(dset, Sequence):
+                    mapping[key] = _handle_is_sequence(dset)
+                mapping[key] = self.dataloader(dset, **loader_kwargs)
+            return mapping
+
+        def _handle_is_sequence(dataset):
+            sequence = []
+            for dset in dataset:
+                if isinstance(dset, Mapping):
+                    sequence.append(_handle_is_mapping(dset))
+                if isinstance(dset, Sequence):
+                    sequence.append(_handle_is_sequence(dset))
+                sequence.append(self.dataloader(dset, **loader_kwargs))
+            return sequence
+
         if self.has_validation:
             return self.validation.train_dataloader()
-        dataloaders = []
-        num_dataloaders = len(self.train_datasets)
-        for idx in range(num_dataloaders):
-            dataloaders.append(
-                DataLoader(
-                    dataset=self.train_datasets[idx],
-                    batch_size=self.batch_size,
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                    drop_last=self.drop_last,
-                ))
-        return dataloaders
+
+        if isinstance(self.train_dataset, Mapping):
+            return _handle_is_mapping(self.train_dataset)
+        if isinstance(self.train_dataset, Sequence):
+            return _handle_is_sequence(self.train_dataset)
+        return self.dataloader(self.train_dataset, **loader_kwargs)
 
     def val_dataloader(self, *args: Any, **kwargs: Any) -> EvalDataLoaderType:
         """
@@ -218,18 +331,21 @@ class VisionDataModule(BaseDataModule):
         """
         if self.has_validation:
             return self.validation.val_dataloader()
-        dataloaders = []
-        num_dataloaders = len(self.val_datasets)
-        for idx in range(num_dataloaders):
-            dataloaders.append(
-                DataLoader(
-                    dataset=self.val_datasets[idx],
-                    batch_size=self.batch_size,
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                    drop_last=self.drop_last,
-                ))
-        return dataloaders
+
+        loader_kwargs = {}
+        loader_kwargs["batch_size"] = kwargs.get("batch_size", None)
+        loader_kwargs["shuffle"] = kwargs.get("shuffle", None)
+        loader_kwargs["num_workers"] = kwargs.get("num_workers", None)
+        loader_kwargs["pin_memory"] = kwargs.get("pin_memory", None)
+        loader_kwargs["drop_last"] = kwargs.get("drop_last", None)
+
+        if isinstance(self.val_dataset, Sequence):
+            if len(self.val_dataset) == 1:
+                return self.dataloader(self.val_dataset[0], **loader_kwargs)
+            return [
+                self.dataloader(ds, **loader_kwargs) for ds in self.val_dataset
+            ]
+        return self.dataloader(self.val_dataset, **loader_kwargs)
 
     def test_dataloader(self, *args: Any, **kwargs: Any) -> EvalDataLoaderType:
         """
@@ -240,41 +356,21 @@ class VisionDataModule(BaseDataModule):
         _ : Collection of DataLoaders
             Collection of test dataloaders specifying test samples.
         """
-        dataloaders = []
-        num_dataloaders = len(self.test_datasets)
-        for idx in range(num_dataloaders):
-            dataloaders.append(
-                DataLoader(
-                    dataset=self.test_datasets[idx],
-                    batch_size=self.batch_size,
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                    drop_last=self.drop_last,
-                ))
-        return dataloaders
+        loader_kwargs = {}
+        loader_kwargs["batch_size"] = kwargs.get("batch_size", None)
+        loader_kwargs["shuffle"] = kwargs.get("shuffle", None)
+        loader_kwargs["num_workers"] = kwargs.get("num_workers", None)
+        loader_kwargs["pin_memory"] = kwargs.get("pin_memory", None)
+        loader_kwargs["drop_last"] = kwargs.get("drop_last", None)
 
-    def predict_dataloader(self, *args: Any,
-                           **kwargs: Any) -> EvalDataLoaderType:
-        """
-        Generates one or multiple Pytorch DataLoaders for prediction.
-
-        Returns
-        -------
-        _ : Collection of DataLoaders
-            Collection of prediction dataloaders specifying prediction samples.
-        """
-        dataloaders = []
-        num_dataloaders = len(self.test_datasets)
-        for idx in range(num_dataloaders):
-            dataloaders.append(
-                DataLoader(
-                    dataset=self.test_datasets[idx],
-                    batch_size=self.batch_size,
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                    drop_last=self.drop_last,
-                ))
-        return dataloaders
+        if isinstance(self.test_dataset, Sequence):
+            if len(self.test_dataset) == 1:
+                return self.dataloader(self.test_dataset[0], **loader_kwargs)
+            return [
+                self.dataloader(ds, **loader_kwargs)
+                for ds in self.test_dataset
+            ]
+        return self.dataloader(self.test_dataset, **loader_kwargs)
 
     def teardown(self, stage: Optional[str] = None) -> None:
         """
@@ -284,8 +380,8 @@ class VisionDataModule(BaseDataModule):
         Parameters
         ----------
         stage: Optional[str]
-            Either ``'fit``, ``'validate'``, ``'test'``, or ``'predict'``.
-            Default = None.
+            Either ``'fit``, ``'validate'``, or ``'test'``.
+            If stage = None, set-up all stages. Default = None.
         """
         if self.is_temp_dir:
             shutil.rmtree(self.root)

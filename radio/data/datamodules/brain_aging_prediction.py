@@ -4,16 +4,16 @@
 Brain Aging Prediction Data Module
 """
 
-from typing import Any, Callable, List, Optional, Tuple, Union, Dict, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from pathlib import Path
 import re
 from string import Template
 from collections import OrderedDict
 import numpy as np
 import torchio as tio  # type: ignore
+from torch.utils.data import DataLoader
 from radio.settings.pathutils import is_dir_or_symlink, PathType, ensure_exists
 from ..visiondatamodule import VisionDataModule
-from ..validation import DataLoaderType
 from ..datautils import get_subjects_from_batch
 from ..datatypes import SubjPathType, SubjDictType
 
@@ -113,9 +113,9 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         study: str = 'Brain_Aging_Prediction',
         data_dir: str = 'Public/data',
         step: str = 'step01_structural_processing',
-        train_transforms: Optional[Callable] = None,
-        val_transforms: Optional[Callable] = None,
-        test_transforms: Optional[Callable] = None,
+        train_transforms: Optional[tio.Transform] = None,
+        val_transforms: Optional[tio.Transform] = None,
+        test_transforms: Optional[tio.Transform] = None,
         use_augmentation: bool = True,
         use_preprocessing: bool = True,
         resample: bool = False,
@@ -230,15 +230,13 @@ class BrainAgingPredictionDataModule(VisionDataModule):
                     train_subjects,
                     transform=train_transforms,
                 )
-                self.train_datasets.append(train_dataset)
                 val_dataset = self.dataset_cls(
                     train_subjects,
                     transform=val_transforms,
                 )
-                self.val_datasets.append(val_dataset)
                 self.validation = self.val_cls(
-                    train_dataset=self.train_datasets[0],
-                    val_dataset=self.val_datasets[0],
+                    train_dataset=train_dataset,
+                    val_dataset=val_dataset,
                     batch_size=self.batch_size,
                     shuffle=self.shuffle,
                     num_workers=self.num_workers,
@@ -249,42 +247,31 @@ class BrainAgingPredictionDataModule(VisionDataModule):
                 )
                 self.validation.setup(self.val_split)
                 self.has_validation = True
-                self.size_train = self.validation.size_train
-                self.size_val = self.validation.size_val
+                self.train_dataset = train_dataset
+                self.size_train = self.size_train_dataset(
+                    self.validation.train_samplers)
+                self.val_dataset = val_dataset
+                self.size_val = self.size_eval_dataset(
+                    self.validation.val_samplers)
             else:
                 train_subjects = self.get_subjects(fold="train")
-                train_dataset = self.dataset_cls(train_subjects,
-                                                 transform=train_transforms)
-                self.train_datasets.append(train_dataset)
-                self.size_train = min(
-                    [len(data) for data in self.train_datasets])
+                self.train_dataset = self.dataset_cls(
+                    train_subjects, transform=train_transforms)
+                self.size_train = self.size_train_dataset(self.train_dataset)
 
                 val_subjects = self.get_subjects(fold="val")
-                val_dataset = self.dataset_cls(val_subjects,
-                                               transform=val_transforms)
-                self.val_datasets.append(val_dataset)
-                self.size_val = min([len(data) for data in self.val_datasets])
+                self.val_dataset = self.dataset_cls(val_subjects,
+                                                    transform=val_transforms)
+                self.size_val = self.size_eval_dataset(self.val_dataset)
 
         if stage == "test" or stage is None:
             test_transforms = self.default_transforms(
                 stage="test"
             ) if self.test_transforms is None else self.test_transforms
             test_subjects = self.get_subjects(fold="test")
-            test_dataset = self.dataset_cls(test_subjects,
-                                            transform=test_transforms)
-            self.test_datasets.append(test_dataset)
-            self.size_test = min([len(data) for data in self.test_datasets])
-
-        if stage == "predict" or stage is None:
-            predict_transforms = self.default_transforms(
-                stage="predict"
-            ) if self.test_transforms is None else self.test_transforms
-            predict_subjects = self.get_subjects(fold="test")
-            predict_dataset = self.dataset_cls(predict_subjects,
-                                               transform=predict_transforms)
-            self.predict_datasets.append(predict_dataset)
-            self.size_predict = min(
-                [len(data) for data in self.predict_datasets])
+            self.test_dataset = self.dataset_cls(test_subjects,
+                                                 transform=test_transforms)
+            self.size_test = self.size_eval_dataset(self.test_dataset)
 
     def get_subjects(self, fold: str = "train") -> List[tio.Subject]:
         """
@@ -579,7 +566,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         return tio.Compose(transforms)
 
     def save(self,
-             dataloader: DataLoaderType,
+             dataloader: DataLoader,
              root: PathType = "~/LocalCerebro/Studies",
              fold: str = "train") -> None:
         """

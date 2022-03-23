@@ -23,6 +23,22 @@ NAMED_SAMPLES = [
     "NamedTensor", "MutableNamedTensor", "NamedImg", "MutableNamedImg"
 ]
 
+Type = TypeVar("Type")
+GenericTrainType = (Union[(
+    Type,
+    Sequence[Type],
+    Sequence[Sequence[Type]],
+    Sequence[Dict[str, Type]],
+    Dict[str, Type],
+    Dict[str, Dict[str, Type]],
+    Dict[str, Sequence[Type]],
+)])
+
+GenericEvalType = Union[Type, Sequence[Type]]
+
+EvalSizeType = GenericEvalType[int]
+TrainSizeType = GenericTrainType[int]
+
 TripletIntType = Tuple[int, int, int]
 SpatialShapeType = Union[int, TripletIntType]
 SubjPathType = OrderedDict[Tuple[str, str], Path]

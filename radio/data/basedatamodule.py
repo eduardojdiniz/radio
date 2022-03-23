@@ -9,16 +9,16 @@ split, transform, and process the data.
 """
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Callable, List, Optional, Type, Union
+from typing import Any, Optional, Type, Union, Tuple
 from pathlib import Path
 import tempfile
-
 import torchio as tio
 import pytorch_lightning as pl
 from radio.settings.pathutils import DATA_ROOT, PathType
-from .validation import (TrainDataLoaderType, EvalDataLoaderType,
+from .validation import (EvalDataLoaderType, TrainDataLoaderType,
                          KFoldValidation, OneFoldValidation, ValidationType)
-from .dataset import DatasetType
+from .dataset import TrainDatasetType, EvalDatasetType
+from .datatypes import EvalSizeType, TrainSizeType
 
 __all__ = ["BaseDataModule"]
 
@@ -37,22 +37,20 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
     <setup>:
         Things to do on every accelerator in distributed mode.
     <train_dataloader>:
-        The training dataloader.
+        The training dataloader(s).
     <val_dataloader>:
         The validation dataloader(s).
     <test_dataloader>:
         The test dataloader(s).
-    <predict_dataloader>:
-        The prediction dataloader(s).
     <teardown>:
         Things to do on every accelerator in distributed mode when finished.
 
     Typical Workflow
     ----------------
-    datamodule = BaseDataModule()
-    datamodule.prepare_data() # download
-    datamodule.setup(stage) # process and split
-    datamodule.teardown(stage) # clean-up
+    data = BaseDataModule()
+    data.prepare_data() # download
+    data.setup(stage) # process and split
+    data.teardown(stage) # clean-up
 
     Parameters
     ----------
@@ -97,16 +95,22 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
         multiprocessing to generate `base_seed` for workers. Pass an int for
         reproducible output across multiple function calls. Default = ``41``.
     """
+    #: Extra arguments for dataset_cls instantiation.
+    EXTRA_ARGS: dict = {}
+    #: Dataset class to use. E.g., torchvision.datasets.MNIST
+    dataset_cls: type
+    #: A tuple describing the shape of the data
+    dims: Optional[Tuple[int, int, int]]
+    #: Dataset name
+    name: str
 
     def __init__(
         self,
         *args: Any,
         root: PathType = DATA_ROOT,
-        train_subjects: Optional[List[tio.Subject]] = None,
-        test_subjects: Optional[List[tio.Subject]] = None,
-        train_transforms: Optional[Callable] = None,
-        val_transforms: Optional[Callable] = None,
-        test_transforms: Optional[Callable] = None,
+        train_transforms: Optional[tio.Transform] = None,
+        val_transforms: Optional[tio.Transform] = None,
+        test_transforms: Optional[tio.Transform] = None,
         batch_size: int = 32,
         shuffle: bool = True,
         num_workers: int = 0,
@@ -121,35 +125,31 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
         super().__init__(*args, **kwargs)
         num_folds_msg = "``num_folds`` must be an integer of at least 2."
         assert isinstance(num_folds, int) and num_folds > 1, num_folds_msg
-        self.root = Path(tempfile.mkdtemp()) if root is None else Path(root)
-        self.train_subjects = train_subjects
-        self.test_subjects = test_subjects
         self.is_temp_dir = bool(root is None)
+        # Dataset Init
+        self.root = Path(root) if root else Path(tempfile.mkdtemp())
         self.train_transforms = train_transforms
         self.val_transforms = val_transforms
         self.test_transforms = test_transforms
+        self.train_dataset: TrainDatasetType
+        self.val_dataset: EvalDatasetType
+        self.test_dataset: EvalDatasetType
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.num_workers = num_workers
         self.pin_memory = pin_memory
         self.drop_last = drop_last
+        self.seed = seed
+        self.size_train: TrainSizeType
+        self.size_val: EvalSizeType
+        self.size_test: EvalSizeType
+        # Dataloader Init
         self.num_folds = num_folds
         self.val_cls: Type[ValidationType] = (OneFoldValidation if num_folds
                                               == 2 else KFoldValidation)
-        self.val_split = val_split
-        self.seed = seed
         self.validation: ValidationType
         self.has_validation = False
-        self.train_dataset: DatasetType
-        self.train_datasets: List[DatasetType] = []
-        self.val_dataset: DatasetType
-        self.val_datasets: List[DatasetType] = []
-        self.test_datasets: List[DatasetType] = []
-        self.predict_datasets: List[DatasetType] = []
-        self.size_train: Optional[int] = None
-        self.size_val: Optional[int] = None
-        self.size_test: Optional[int] = None
-        self.size_predict: Optional[int] = None
+        self.val_split = val_split
 
     @abstractmethod
     def prepare_data(self, *args: Any, **kwargs: Any) -> None:
@@ -190,7 +190,7 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
         Parameters
         ----------
         stage: Optional[str]
-            Either ``'fit``, ``'validate'``, ``'test'``, or ``'predict'``.
+            Either ``'fit``, ``'validate'``, or ``'test'``.
             If stage = None, set-up all stages. Default = None.
 
         Example
@@ -217,8 +217,8 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
         Parameters
         ----------
         stage: Optional[str]
-            Either ``'fit``, ``'validate'``, ``'test'``, or ``'predict'``.
-            Default = None.
+            Either ``'fit``, ``'validate'``, or ``'test'``.
+            If stage = None, set-up all stages. Default = None.
         """
 
     @abstractmethod
@@ -324,20 +324,6 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
             )
             # each batch will be a list of tensors: [batch_mnist, batch_cifar]
             return [mnist_loader, cifar_loader]
-
-        # multiple dataloader, return as dict
-        def val_dataloader(self):
-            mnist = MNIST(...)
-            cifar = CIFAR(...)
-            mnist_loader = torch.utils.data.DataLoader(
-                dataset=mnist, batch_size=self.batch_size, shuffle=False
-            )
-            cifar_loader = torch.utils.data.DataLoader(
-                dataset=cifar, batch_size=self.batch_size, shuffle=False
-            )
-            # each batch will be a dict of
-            tensors: {'mnist': batch_mnist, 'cifar': batch_cifar}
-            return {'mnist': mnist_loader, 'cifar': cifar_loader}
         """
 
     @abstractmethod
@@ -383,78 +369,4 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
             )
             # each batch will be a list of tensors: [batch_mnist, batch_cifar]
             return [mnist_loader, cifar_loader]
-
-        # multiple dataloader, return as dict
-        def test_dataloader(self):
-            mnist = MNIST(...)
-            cifar = CIFAR(...)
-            mnist_loader = torch.utils.data.DataLoader(
-                dataset=mnist, batch_size=self.batch_size, shuffle=False
-            )
-            cifar_loader = torch.utils.data.DataLoader(
-                dataset=cifar, batch_size=self.batch_size, shuffle=False
-            )
-            # each batch will be a dict of
-            tensors: {'mnist': batch_mnist, 'cifar': batch_cifar}
-            return {'mnist': mnist_loader, 'cifar': cifar_loader}
-        """
-
-    @abstractmethod
-    def predict_dataloader(self, *args: Any,
-                           **kwargs: Any) -> EvalDataLoaderType:
-        """
-        Generates one or multiple Pytorch DataLoaders for prediction.
-
-        Returns
-        -------
-        _ : Collection of DataLoader
-            Collection of prediction dataloaders specifying prediction samples.
-
-        Examples
-        -------
-        # single dataloader
-        def predict_dataloader(self):
-            transform = transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize((0.5,), (1.0,))
-            ])
-            dataset = MNIST(
-                root='/path/to/mnist/',
-                train=False,
-                transform=transform,
-                download=True
-            )
-            loader = torch.utils.data.DataLoader(
-                dataset=dataset,
-                batch_size=self.batch_size,
-                shuffle=False
-            )
-            return loader
-
-        # multiple dataloaders, return as list
-        def predict_dataloader(self):
-            mnist = MNIST(...)
-            cifar = CIFAR(...)
-            mnist_loader = torch.utils.data.DataLoader(
-                dataset=mnist, batch_size=self.batch_size, shuffle=False
-            )
-            cifar_loader = torch.utils.data.DataLoader(
-                dataset=cifar, batch_size=self.batch_size, shuffle=False
-            )
-            # each batch will be a list of tensors: [batch_mnist, batch_cifar]
-            return [mnist_loader, cifar_loader]
-
-        # multiple dataloader, return as dict
-        def predict_dataloader(self):
-            mnist = MNIST(...)
-            cifar = CIFAR(...)
-            mnist_loader = torch.utils.data.DataLoader(
-                dataset=mnist, batch_size=self.batch_size, shuffle=False
-            )
-            cifar_loader = torch.utils.data.DataLoader(
-                dataset=cifar, batch_size=self.batch_size, shuffle=False
-            )
-            # each batch will be a dict of
-            tensors: {'mnist': batch_mnist, 'cifar': batch_cifar}
-            return {'mnist': mnist_loader, 'cifar': cifar_loader}
         """
