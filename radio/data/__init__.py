@@ -11,7 +11,6 @@ from .datatypes import *
 from .datadecorators import *
 from .datautils import *
 from .visiondatamodule import *
-from .visionpatchdatamodule import *
 from .basedatamodule import *
 from .constants import *
 with warnings.catch_warnings():
