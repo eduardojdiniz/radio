@@ -319,8 +319,8 @@ class BrainAgingPredictionPatchDataModule(BrainAgingPredictionDataModule):
                     train_dataset=self.train_queue,
                     val_dataset=self.val_queue,
                     batch_size=self.batch_size,
-                    shuffle=self.shuffle,
-                    num_workers=self.num_workers,
+                    shuffle=False,
+                    num_workers=0,
                     pin_memory=self.pin_memory,
                     drop_last=self.drop_last,
                     num_folds=self.num_folds,
@@ -434,3 +434,25 @@ class BrainAgingPredictionPatchDataModule(BrainAgingPredictionDataModule):
             tio.RandomBiasField(p=0.25),
         ])
         return augment
+
+    def train_dataloader(self, *args, **kwargs):
+        """
+        Generates one or multiple Pytorch DataLoaders for train.
+
+        Returns
+        -------
+        _ : Collection of DataLoader
+            Collection of train dataloaders specifying training samples.
+        """
+        super().train_dataloader(num_workers=0, shuffle=False)
+
+    def val_dataloader(self, *args, **kwargs):
+        """
+        Generates one or multiple Pytorch DataLoaders for validation.
+
+        Returns
+        -------
+        _ : Collection of DataLoader
+            Collection of validation dataloaders specifying validation samples.
+        """
+        super().val_dataloader(num_workers=0, shuffle=False)
