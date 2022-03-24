@@ -109,7 +109,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
     def __init__(
         self,
         *args: Any,
-        root: PathType = Path('/media/cerebro/Studies'),
+        root: PathType = Path('/media/cerebro'),
         study: str = 'Brain_Aging_Prediction',
         data_dir: str = 'Public/data',
         step: str = 'step01_structural_processing',
@@ -133,7 +133,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         verbose: bool = False,
         **kwargs: Any,
     ) -> None:
-        root = Path(root).expanduser() / study / data_dir
+        root = Path(root) / 'Studies' / study / data_dir
         super().__init__(
             *args,
             root=root,
@@ -161,49 +161,11 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         self.resample = resample
         self.verbose = verbose
 
-        # Data folder flags to check if data is splitted already
-        self.has_complete_split: bool
-        self.has_train_val_split: bool
-        self.has_train_test_split: bool
-
-    def check_if_data_split(self) -> None:
-        """Check if data is splitted in train, test and val folders"""
-        has_train_folder = is_dir_or_symlink(self.root / self.step / "train")
-        has_test_folder = is_dir_or_symlink(self.root / self.step / "test")
-        has_val_folder = is_dir_or_symlink(self.root / self.step / "val")
-        self.has_train_test_split = bool(has_train_folder and has_test_folder)
-        self.has_train_val_split = bool(has_train_folder and has_val_folder)
-        self.has_complete_split = bool(has_train_folder and has_test_folder
-                                       and has_val_folder)
-
-    @staticmethod
-    def get_max_shape(subjects: List[tio.Subject]) -> Tuple[int, int, int]:
-        """
-        Get max height, width, and depth accross all subjects.
-
-        Parameters
-        ----------
-        subjects : List[tio.Subject]
-            List of TorchIO Subject objects.
-
-        Returns
-        -------
-        shapes_tuple : Tuple[int, int, int]
-            Max height, width and depth across all subjects.
-        """
-        dataset = tio.SubjectsDataset(subjects)
-        shapes = np.array([
-            image.spatial_shape for subject in dataset.dry_iter()
-            for image in subject.get_images()
-        ])
-        shapes_tuple = tuple(map(int, shapes.max(axis=0).tolist()))
-        return cast(Tuple[int, int, int], shapes_tuple)
-
     def prepare_data(self, *args: Any, **kwargs: Any) -> None:
         """Verify data directory exists and if test/train/val splitted."""
         if not is_dir_or_symlink(self.root):
             raise OSError('Study data directory not found!')
-        self.check_if_data_split()
+        self.check_if_data_split(self.step)
 
     def setup(self, stage: Optional[str] = None) -> None:
         """
@@ -325,10 +287,12 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         ) -> SubjDictType:
             subjects_dict: SubjDictType = OrderedDict()
             for (subj_id, scan_id), path in paths_dict.items():
-                subjects_dict[(subj_id, scan_id)] = {
-                    "subj_id": subj_id,
-                    "scan_id": scan_id
-                }
+                subjects_dict[(subj_id, scan_id)] = OrderedDict({
+                    "subj_id":
+                    subj_id,
+                    "scan_id":
+                    scan_id
+                })
                 for intensity in intensities:
                     intensity_path = path / self.intensity2template[
                         intensity].substitute(subj_id=subj_id, scan_id=scan_id)
@@ -567,17 +531,19 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
     def save(self,
              dataloader: DataLoader,
-             root: PathType = "~/LocalCerebro/Studies",
+             root: PathType = Path("~/LocalCerebro"),
+             data_dir: str = 'processed_data',
+             step: str = 'step01_structural_processing',
              fold: str = "train") -> None:
         """
         Arguments
         ---------
         root : Path or str, optional
-            Root where to save data. Default = ``'~/LocalCerebro/Studies'``.
+            Root where to save data. Default = ``'~/LocalCerebro'``.
         """
         save_root = ensure_exists(
-            Path(root) / self.study / 'Public' / 'preprocessed_data' /
-            self.step / fold)
+            Path(root).expanduser() / 'Studies' / self.study / data_dir /
+            step / fold)
 
         for batch in dataloader:
             subjects = get_subjects_from_batch(cast(Dict[str, Any], batch))

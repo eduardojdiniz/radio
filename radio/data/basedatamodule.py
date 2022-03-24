@@ -126,8 +126,12 @@ class BaseDataModule(pl.LightningDataModule, metaclass=ABCMeta):
         num_folds_msg = "``num_folds`` must be an integer of at least 2."
         assert isinstance(num_folds, int) and num_folds > 1, num_folds_msg
         self.is_temp_dir = bool(root is None)
+        # Data folder flags to check if data is splitted already
+        self.has_train_val_split: bool
+        self.has_train_test_split: bool
         # Dataset Init
-        self.root = Path(root) if root else Path(tempfile.mkdtemp())
+        self.root = Path(root).expanduser() if root else Path(
+            tempfile.mkdtemp())
         self.train_transforms = train_transforms
         self.val_transforms = val_transforms
         self.test_transforms = test_transforms

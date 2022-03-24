@@ -9,9 +9,13 @@ split, transform, and process the data.
 """
 
 from abc import abstractmethod
-from typing import Any, Callable, Mapping, Optional, Sequence, Sized
+from typing import (Any, Callable, Mapping, Optional, Sequence, Sized, List,
+                    Tuple, cast)
 import shutil
 from torch.utils.data import DataLoader, IterableDataset
+import torchio as tio
+import numpy as np
+from ..settings.pathutils import is_dir_or_symlink
 from .dataset import DatasetType
 from .validation import TrainDataLoaderType, EvalDataLoaderType
 from .basedatamodule import BaseDataModule
@@ -85,10 +89,49 @@ class VisionDataModule(BaseDataModule):
         reproducible output across multiple function calls. Default = ``41``.
     """
 
+    def check_if_data_split(self, stem: str = "") -> None:
+        """Check if data is splitted in train, test and val folders"""
+        has_train_folder = is_dir_or_symlink(self.root / stem / "train")
+        has_test_folder = is_dir_or_symlink(self.root / stem / "test")
+        has_val_folder = is_dir_or_symlink(self.root / stem / "val")
+        self.has_train_test_split = bool(has_train_folder and has_test_folder)
+        self.has_train_val_split = bool(has_train_folder and has_val_folder)
+
     def prepare_data(self, *args: Any, **kwargs: Any) -> None:
-        """Saves files to data root dir."""
+        """
+        Saves files to data root dir.
+        Verify data directory exists.
+        Verify if test/train/val splitted.
+        """
+        if not is_dir_or_symlink(self.root):
+            raise OSError('Study data directory not found!')
+        self.check_if_data_split()
         self.dataset_cls(self.root, train=True, download=True)
         self.dataset_cls(self.root, train=False, download=True)
+
+    @staticmethod
+    def get_max_shape(subjects: List[tio.Subject]) -> Tuple[int, int, int]:
+        """
+        Get max height, width, and depth accross all subjects.
+
+        Parameters
+        ----------
+        subjects : List[tio.Subject]
+            List of TorchIO Subject objects.
+
+        Returns
+        -------
+        shapes_tuple : Tuple[int, int, int]
+            Max height, width and depth across all subjects.
+        """
+        dataset = tio.SubjectsDataset(subjects)
+        shapes = np.array([
+            image.spatial_shape for subject in dataset.dry_iter()
+            for image in subject.get_images()
+        ])
+
+        shapes_tuple = tuple(map(int, shapes.max(axis=0).tolist()))
+        return cast(Tuple[int, int, int], shapes_tuple)
 
     def setup(self, stage: Optional[str] = None) -> None:
         """
@@ -109,10 +152,13 @@ class VisionDataModule(BaseDataModule):
                 stage="fit"
             ) if self.val_transforms is None else self.val_transforms
 
-            train_dataset = self.dataset_cls(self.root,
-                                             train=True,
-                                             transform=train_transforms,
-                                             **self.EXTRA_ARGS)
+            train_dataset = self.dataset_cls(
+                self.root,
+                train=True,
+                transform=train_transforms,
+                **self.EXTRA_ARGS,
+            )
+
             val_dataset = self.dataset_cls(self.root,
                                            train=True,
                                            transform=val_transforms,
@@ -205,6 +251,8 @@ class VisionDataModule(BaseDataModule):
         if isinstance(train_dataset, Mapping):
             return _handle_is_mapping(train_dataset)
         if isinstance(train_dataset, Sequence):
+            if len(train_dataset) == 1:
+                return VisionDataModule.size_train_dataset(train_dataset[0])
             return _handle_is_sequence(train_dataset)
         return len(train_dataset)
 
@@ -317,6 +365,15 @@ class VisionDataModule(BaseDataModule):
         if isinstance(self.train_dataset, Mapping):
             return _handle_is_mapping(self.train_dataset)
         if isinstance(self.train_dataset, Sequence):
+            if len(self.train_dataset) == 1:
+                if isinstance(self.train_dataset[0], Mapping):
+                    return _handle_is_mapping(self.train_dataset[0])
+                if isinstance(self.train_dataset[0], Sequence):
+                    if len(self.train_dataset[0]) == 1:
+                        return self.dataloader(self.train_dataset[0][0],
+                                               **loader_kwargs)
+                    return _handle_is_sequence(self.train_dataset[0])
+                return self.dataloader(self.train_dataset[0], **loader_kwargs)
             return _handle_is_sequence(self.train_dataset)
         return self.dataloader(self.train_dataset, **loader_kwargs)
 
@@ -371,6 +428,10 @@ class VisionDataModule(BaseDataModule):
                 for ds in self.test_dataset
             ]
         return self.dataloader(self.test_dataset, **loader_kwargs)
+
+    def predict_dataloader(self, *args: Any,
+                           **kwargs: Any) -> EvalDataLoaderType:
+        pass
 
     def teardown(self, stage: Optional[str] = None) -> None:
         """
