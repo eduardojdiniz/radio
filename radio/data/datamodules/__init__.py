@@ -6,3 +6,4 @@ Data Modules init
 from .medical_decathlon import *
 from .klu_apc2 import *
 from .brain_aging_prediction import *
+from .brain_aging_prediction_patch import *

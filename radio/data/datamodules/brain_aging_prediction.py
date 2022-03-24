@@ -109,7 +109,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
     def __init__(
         self,
         *args: Any,
-        root: PathType = Path('/media/cerebro'),
+        root: PathType = Path('/media/cerebro/Studies'),
         study: str = 'Brain_Aging_Prediction',
         data_dir: str = 'Public/data',
         step: str = 'step01_structural_processing',
@@ -133,7 +133,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         verbose: bool = False,
         **kwargs: Any,
     ) -> None:
-        root = Path(root) / 'Studies' / study / data_dir
+        root = Path(root) / study / data_dir
         super().__init__(
             *args,
             root=root,
@@ -174,7 +174,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         Parameters
         ----------
         stage: Optional[str]
-            Either ``'fit``, ``'validate'``, ``'test'``, or ``'predict'``.
+            Either ``'fit``, ``'validate'``, or ``'test'``.
             If stage = ``None``, set-up all stages. Default = ``None``.
         """
         if stage == "fit" or stage is None:
@@ -531,7 +531,8 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
     def save(self,
              dataloader: DataLoader,
-             root: PathType = Path("~/LocalCerebro"),
+             root: PathType = Path(
+                 "/media/cerebro/Workspaces/Students/Eduardo_Diniz/Studies"),
              data_dir: str = 'processed_data',
              step: str = 'step01_structural_processing',
              fold: str = "train") -> None:
@@ -542,8 +543,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
             Root where to save data. Default = ``'~/LocalCerebro'``.
         """
         save_root = ensure_exists(
-            Path(root).expanduser() / 'Studies' / self.study / data_dir /
-            step / fold)
+            Path(root).expanduser() / self.study / data_dir / step / fold)
 
         for batch in dataloader:
             subjects = get_subjects_from_batch(cast(Dict[str, Any], batch))
