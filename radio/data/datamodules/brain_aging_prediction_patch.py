@@ -444,7 +444,7 @@ class BrainAgingPredictionPatchDataModule(BrainAgingPredictionDataModule):
         _ : Collection of DataLoader
             Collection of train dataloaders specifying training samples.
         """
-        super().train_dataloader(num_workers=0, shuffle=False)
+        return super().train_dataloader(num_workers=0, shuffle=False)
 
     def val_dataloader(self, *args, **kwargs):
         """
@@ -455,4 +455,4 @@ class BrainAgingPredictionPatchDataModule(BrainAgingPredictionDataModule):
         _ : Collection of DataLoader
             Collection of validation dataloaders specifying validation samples.
         """
-        super().val_dataloader(num_workers=0, shuffle=False)
+        return super().val_dataloader(num_workers=0, shuffle=False)

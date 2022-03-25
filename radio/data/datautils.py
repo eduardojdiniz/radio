@@ -4,7 +4,7 @@
 Data related utilities.
 """
 
-from typing import Any, List, Optional, Tuple, Iterable, TypeVar, Dict
+from typing import Any, List, Optional, Tuple, Iterable, TypeVar, Dict, Mapping
 import hashlib
 import os.path
 import traceback
@@ -123,7 +123,9 @@ def get_batch_images_and_size(batch: Dict) -> Tuple[List[str], int]:
     """
     names = []
     for image_name, image_dict in batch.items():
-        if constants.DATA in image_dict:  # assume it is a TorchIO Image
+        if isinstance(
+                image_dict, Mapping
+        ) and constants.DATA in image_dict:  # assume it is a TorchIO Image
             size = len(image_dict[constants.DATA])
             names.append(image_name)
     if not names:
