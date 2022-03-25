@@ -454,7 +454,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         """
         preprocess_list: List[tio.transforms.Transform] = []
 
-        # Use standard orientation for all images
+        # Use standard orientation for all images, RAS+
         preprocess_list.append(tio.ToCanonical())
 
         # If true, resample to T1
@@ -470,9 +470,9 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
         preprocess_list.extend([
             tio.RescaleIntensity((-1, 1)),
-            tio.CropOrPad(shape),
-            tio.EnsureShapeMultiple(8),  # for the U-Net
-            tio.OneHot()
+            tio.CropOrPad(shape),  # (160, 192, 160)
+            tio.EnsureShapeMultiple(8),  # better suited for U-Net type Nets
+            tio.OneHot()  # for labels
         ])
 
         return tio.Compose(preprocess_list)

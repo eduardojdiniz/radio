@@ -8,12 +8,13 @@ models. They also allow you to share a full dataset without explaining how to
 download, split, transform, and process the data.
 """
 
-from typing import List, Optional, Union, cast
+from typing import List, Optional, Union, cast, Dict, Any
 import copy
 from torch.utils.data import DataLoader, Dataset
 import torchio as tio  # type: ignore
 import torch
 from ..datatypes import SpatialShapeType
+from ..datautils import get_subjects_from_batch
 
 __all__ = ["PatchBasedInference"]
 
@@ -26,7 +27,7 @@ class PatchBasedInference:
     ----------------
     in_dataset: tio.SubjectsDataset
     model: torch.nn.Module
-    modalities: List[str]
+    intensities: List[str]
     out_dataset: tio.SubjectsDataset
 
     inferencemodule = PatchBasedInference(
@@ -36,7 +37,7 @@ class PatchBasedInference:
         overlap_mode,
     )
 
-    out_dataset = inferencemodule(in_dataset, model, modalities)
+    out_dataset = inferencemodule(in_dataset, model, intensities)
 
     Parameters
     ----------
@@ -102,9 +103,8 @@ class PatchBasedInference:
         self,
         subject: tio.Subject,
         model: torch.nn.Module,
-        modality: str = None,
+        intensity: str,
     ) -> torch.Tensor:
-        modality = modality if modality else 't1'
         sampler = tio.data.GridSampler(
             subject=subject,
             patch_size=self.patch_size,
@@ -124,7 +124,7 @@ class PatchBasedInference:
         model.eval()
         with torch.no_grad():
             for patches_batch in patch_loader:
-                insor = patches_batch[modality][tio.DATA]
+                insor = patches_batch[intensity][tio.DATA]
                 locations = patches_batch[tio.LOCATION]
                 outsor = model(insor)
                 aggregator.add_batch(outsor, locations)
@@ -132,36 +132,37 @@ class PatchBasedInference:
 
     def __call__(
         self,
-        in_dataset: tio.SubjectsDataset,
+        batch: Dict[str, Any],
         model: torch.nn.Module,
-        modalities: Optional[List[str]] = None,
-    ) -> tio.SubjectsDataset:
+        intensities: Optional[List[str]] = None,
+    ) -> List[tio.Subject]:
         """
         Parameters
         ----------
-        in_dataset : tio.SubjectsDataset
-            Test subjects dataset.
+        batch : Dict[str, Any]
+            Dataloader batch.
         model : torch.nn.Module
             Model to use for inference.
-        modalities : List[str], optional
-            In which modalilities to perform inference. Default = ``['t1']``.
+        intensities : List[str], optional
+            In which modalilities to perform inference. Default = ``['T1']``.
 
         Returns
         -------
-        out_dataset : tio.SubjectsDataset
-            Test subjects dataset with inference results on given modalities.
+        subjects_list : List[tio.Subject]
+            List of test subjects with inference results on given intensities.
         """
-        modalities = modalities if modalities is not None else ['t1']
+        intensities = intensities if intensities else ['T1']
+        subjects = get_subjects_from_batch(batch)
         subjects_list = []
-        for _, subject in enumerate(in_dataset):
+        for subject in subjects:
             # Create a copy of subject and remove images
             subject_copy = copy.copy(subject)
             for image_name in subject_copy.get_images_names():
                 subject_copy.remove_image(image_name)
-            # Inference on each of the required modalities
-            for modality in modalities:
-                outsor = self._inference(subject, model, modality)
-                subject_copy.add_image(outsor, image_name=modality)
+            # Inference on each of the required intensities
+            for intensity in intensities:
+                outsor = self._inference(subject, model, intensity)
+                subject_copy.add_image(tio.ScalarImage(tensor=outsor),
+                                       image_name=intensity)
             subjects_list.append(subject_copy)
-        out_dataset = tio.SubjectsDataset(subjects_list)
-        return out_dataset
+        return subjects_list

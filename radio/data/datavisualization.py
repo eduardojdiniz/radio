@@ -13,7 +13,7 @@ from torchio.data.image import Image, LabelMap
 from torchio.transforms.preprocessing.spatial.to_canonical import ToCanonical
 from .datautils import get_subjects_from_batch
 
-__all__ = ["plot_batch"]
+__all__ = ["plot_batch", "plot_subjects", "plot_dataset"]
 
 
 def import_mpl_plt():
@@ -49,9 +49,42 @@ def color_labels(arrays, cmap_dict):
     return results
 
 
+def plot_subjects(
+    subjects: List[Subject],
+    num_samples: int = 5,
+    random_samples: bool = True,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -> None:
+    """plot images and labels from a batch of images"""
+    # Create subjects dataset from list of subjects
+    num_subjects = len(subjects)
+    if random_samples:
+        samples_idx = random.sample(
+            range(0, num_subjects),
+            min(num_samples, num_subjects),
+        )
+    else:
+        samples_idx = list(range(0, min(num_samples, num_subjects)))
+
+    dataset = tio.SubjectsDataset(subjects)
+    # Keep only samples_idx subjects in the dataset
+    dataset._subjects = [
+        subject for idx, subject in enumerate(dataset._subjects)
+        if idx in samples_idx
+    ]
+
+    plot_dataset(dataset,
+                 intensities=intensities,
+                 labels=labels,
+                 exclude_keys=exclude_keys)
+
+
 def plot_batch(
     batch: Dict[str, Any],
     num_samples: int = 5,
+    random_samples: bool = True,
     intensities: Optional[List[str]] = None,
     labels: Optional[List[str]] = None,
     exclude_keys: Optional[List[str]] = None,
@@ -59,10 +92,14 @@ def plot_batch(
     """plot images and labels from a batch of images"""
     # Create subjects dataset from batch
     batch_size = len(batch)
-    samples_idx = random.sample(
-        range(0, batch_size),
-        min(num_samples, batch_size),
-    )
+    if random_samples:
+        samples_idx = random.sample(
+            range(0, batch_size),
+            min(num_samples, batch_size),
+        )
+    else:
+        samples_idx = list(range(0, min(num_samples, batch_size)))
+
     subjects = get_subjects_from_batch(batch)
     dataset = tio.SubjectsDataset(subjects)
 
@@ -71,6 +108,19 @@ def plot_batch(
         subject for idx, subject in enumerate(dataset._subjects)
         if idx in samples_idx
     ]
+    plot_dataset(dataset,
+                 intensities=intensities,
+                 labels=labels,
+                 exclude_keys=exclude_keys)
+
+
+def plot_dataset(
+    dataset: tio.SubjectsDataset,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -> None:
+    """plot images and labels from a dataset of subjects"""
 
     # Parse intensities, labels and exclude_keys
     exclude_keys = exclude_keys if exclude_keys else []
