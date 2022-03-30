@@ -1,0 +1,962 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Pytorch Lighting Data Modules for Radiology">
+      
+      
+      
+      <link rel="icon" href="../../../favicon.ico">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.8">
+    
+    
+      
+        <title>Base Data Module - RadIO - Radiology IO</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.644de097.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+          
+          
+          <meta name="theme-color" content="">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../css/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="deep-blue" data-md-color-accent="deep-orange">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#module-radiodatabasedatamodule" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="RadIO - Radiology IO" class="md-header__button md-logo" aria-label="RadIO - Radiology IO" data-md-component="logo">
+      
+  <img src="../../../favicon-32x32.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RadIO - Radiology IO
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Base Data Module
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eduardojdiniz/radio" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="RadIO - Radiology IO" class="md-nav__button md-logo" aria-label="RadIO - Radiology IO" data-md-component="logo">
+      
+  <img src="../../../favicon-32x32.png" alt="logo">
+
+    </a>
+    RadIO - Radiology IO
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eduardojdiniz/radio" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1" type="checkbox" id="__nav_2_1" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1">
+          radio
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="radio" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_1">
+          <span class="md-nav__icon md-icon"></span>
+          radio
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../app/" class="md-nav__link">
+        App
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        Index
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../version/" class="md-nav__link">
+        Version
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1_4" type="checkbox" id="__nav_2_1_4" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1_4">
+          data
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="data" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_1_4">
+          <span class="md-nav__icon md-icon"></span>
+          data
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Base Data Module
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Base Data Module
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#classes" class="md-nav__link">
+    Classes
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datautils/" class="md-nav__link">
+        Data Utils
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset/" class="md-nav__link">
+        Dataset
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        Validation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1_4_5" type="checkbox" id="__nav_2_1_4_5" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1_4_5">
+          datamodules
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="datamodules" data-md-level="4">
+        <label class="md-nav__title" for="__nav_2_1_4_5">
+          <span class="md-nav__icon md-icon"></span>
+          datamodules
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datamodules/brain_aging_prediction/" class="md-nav__link">
+        Brain aging prediction
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datamodules/brain_aging_prediction_patch/" class="md-nav__link">
+        Brain aging prediction patch
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#classes" class="md-nav__link">
+    Classes
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/eduardojdiniz/radio/edit/main/docs/docs/radio/data/basedatamodule.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+
+<h1 id="module-radiodatabasedatamodule">Module radio.data.basedatamodule</h1>
+<p>Based on LightningDataModule for managing data. A datamodule is a shareable,
+reusable class that encapsulates all the steps needed to process data, i.e.,
+decoupling datasets from models to allow building dataset-agnostic models. They
+also allow you to share a full dataset without explaining how to download,
+split, transform, and process the data.</p>
+<h2 id="classes">Classes</h2>
+<p><code>BaseDataModule(*args: Any, root: Union[str, pathlib.Path] = PosixPath('/home/dinize@acct.upmchs.net/playground/radio/dataset'), train_transforms: Optional[torchio.transforms.transform.Transform] = None, val_transforms: Optional[torchio.transforms.transform.Transform] = None, test_transforms: Optional[torchio.transforms.transform.Transform] = None, batch_size: int = 32, shuffle: bool = True, num_workers: int = 0, pin_memory: bool = True, drop_last: bool = False, num_folds: int = 2, val_split: Union[int, float] = 0.2, seed: int = 41, **kwargs: Any)</code>
+:   Base class for making data modules.</p>
+<pre><code>To create a subclass, you need to implement the following functions:
+
+A BaseDataModule needs to implement 6 key methods:
+&lt;__init__&gt;:
+    (Optionally) Initialize the class, first call super.__init__().
+&lt;prepare_data&gt;:
+    Things to do on 1 GPU/TPU not on every GPU/TPU in distributed mode.
+&lt;setup&gt;:
+    Things to do on every accelerator in distributed mode.
+&lt;train_dataloader&gt;:
+    The training dataloader(s).
+&lt;val_dataloader&gt;:
+    The validation dataloader(s).
+&lt;test_dataloader&gt;:
+    The test dataloader(s).
+&lt;teardown&gt;:
+    Things to do on every accelerator in distributed mode when finished.
+
+Typical Workflow
+----------------
+data = BaseDataModule()
+data.prepare_data() # download
+data.setup(stage) # process and split
+data.teardown(stage) # clean-up
+
+Parameters
+----------
+root : Path or str, optional
+    Root directory of dataset. If None, a temporary directory will be used.
+    Default = ``DATA_ROOT / 'medical_decathlon'``.
+train_transforms : Callable, optional
+    A function/transform that takes in a sample and returns a
+    transformed version, e.g, ``torchvision.transforms.RandomCrop``.
+val_transforms : Callable, optional
+    A function/transform that takes in a sample and returns a
+    transformed version, e.g, ``torchvision.transforms.RandomCrop``.
+test_transforms : Callable, optional
+    A function/transform that takes in a sample and returns a
+    transformed version, e.g, ``torchvision.transforms.RandomCrop``.
+batch_size : int, optional
+    How many samples per batch to load. Default = ``32``.
+shuffle : bool, optional
+    Whether to shuffle the data at every epoch. Default = ``False``.
+num_workers : int, optional
+    How many subprocesses to use for data loading. ``0`` means that the
+    data will be loaded in the main process. Default: ``0``.
+pin_memory : bool, optional
+    If ``True``, the data loader will copy Tensors into CUDA pinned memory
+    before returning them.
+drop_last : bool, optional
+    Set to ``True`` to drop the last incomplete batch, if the dataset size
+    is not divisible by the batch size. If ``False`` and the size of
+    dataset is not divisible by the batch size, then the last batch will be
+    smaller. Default = ``False``.
+num_folds : int, optional
+    Number of folds. Must be at least ``2``. ``2`` corresponds to a single
+    train/validation split. Default = ``2``.
+val_split: int or float, optional
+    If ``num_folds = 2``, then ``val_split`` specify how the
+    train_dataset should be split into train/validation datasets. If
+    ``num_folds &gt; 2``, then it is not used. Default = ``0.2``.
+seed : int, optional
+    When `shuffle` is True, `seed` affects the ordering of the indices,
+    which controls the randomness of each fold. It is also use to seed the
+    RNG used by RandomSampler to generate random indexes and
+    multiprocessing to generate `base_seed` for workers. Pass an int for
+    reproducible output across multiple function calls. Default = ``41``.
+
+### Ancestors (in MRO)
+
+* pytorch_lightning.core.datamodule.LightningDataModule
+* pytorch_lightning.core.hooks.CheckpointHooks
+* pytorch_lightning.core.hooks.DataHooks
+* pytorch_lightning.core.mixins.hparams_mixin.HyperparametersMixin
+
+### Descendants
+
+* radio.data.visiondatamodule.VisionDataModule
+
+### Class variables
+
+`EXTRA_ARGS: dict`
+:   Extra arguments for dataset_cls instantiation.
+
+`dataset_cls: type`
+:   Dataset class to use. E.g., torchvision.datasets.MNIST
+
+`name: str`
+:   Dataset name
+
+### Instance variables
+
+`dims: Optional[Tuple[int, int, int]]`
+:   A tuple describing the shape of the data
+
+### Methods
+
+`prepare_data(self, *args: Any, **kwargs: Any) ‑&gt; None`
+:   Data operations to be performed that need to be done only from a single
+    process in distributed settings. For example, download and saving data.
+
+    Warning
+    -------
+    DO NOT set state here (use ``'setup'`` instead) since this is NOT
+    called on every device.
+
+    Example
+    -------
+    def prepare_data(self, *args, **kwargs):
+        # good
+        download_data()
+        tokenize()
+        etc()
+
+        # good
+        torchvison.datasets.MNIST(self.root, train=True, download=True)
+        torchvison.datasets.MNIST(self.root, train=False, download=True)
+
+        # bad
+        self.split = data_split
+        self.some_state = some_other_state()
+
+`setup(self, stage: Optional[str] = None) ‑&gt; None`
+:   Data operations to be performed on every GPU. This is a good hook when
+    you need to build models dynamically or adjust something about them
+    based on the data atrributes. For example, count number of classes,
+    build vocabulary, perform train/val/test splits, apply transforms.
+
+    Parameters
+    ----------
+    stage: Optional[str]
+        Either ``'fit``, ``'validate'``, or ``'test'``.
+        If stage = None, set-up all stages. Default = None.
+
+    Example
+    -------
+    def setup(self, stage):
+        if stage in (None, "fit"):
+            # train + validation set-up
+            self.data_train, self.data_val = load_fit(...)
+            self.dims = self.data_train[0][0].shape
+            self.l1 = nn.Linear(28, self.data_train.num_classes)
+        if stage in (None, "test"):
+            # test set-up
+            self.data_test = load_test(...)
+            self.dims = self.data_test[0][0].shape
+            self.l1 = nn.Linear(28, self.data_test.num_classes)
+
+`teardown(self, stage: Optional[str] = None) ‑&gt; None`
+:   Called at the end of fit (train + validate), validate, test,
+    or predict.
+
+    Parameters
+    ----------
+    stage: Optional[str]
+        Either ``'fit``, ``'validate'``, or ``'test'``.
+        If stage = None, set-up all stages. Default = None.
+
+`test_dataloader(self, *args: Any, **kwargs: Any) ‑&gt; Union[torch.utils.data.dataloader.DataLoader, Sequence[torch.utils.data.dataloader.DataLoader]]`
+:   Generates one or multiple Pytorch DataLoaders for testing.
+
+    Returns
+    -------
+    _ : Collection of DataLoader
+        Collection of test dataloaders specifying testing samples.
+
+    Examples
+    -------
+    # single dataloader
+    def test_dataloader(self):
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (1.0,))
+        ])
+        dataset = MNIST(
+            root='/path/to/mnist/',
+            train=False,
+            transform=transform,
+            download=True
+        )
+        loader = torch.utils.data.DataLoader(
+            dataset=dataset,
+            batch_size=self.batch_size,
+            shuffle=False
+        )
+        return loader
+
+    # multiple dataloaders, return as list
+    def test_dataloader(self):
+        mnist = MNIST(...)
+        cifar = CIFAR(...)
+        mnist_loader = torch.utils.data.DataLoader(
+            dataset=mnist, batch_size=self.batch_size, shuffle=False
+        )
+        cifar_loader = torch.utils.data.DataLoader(
+            dataset=cifar, batch_size=self.batch_size, shuffle=False
+        )
+        # each batch will be a list of tensors: [batch_mnist, batch_cifar]
+        return [mnist_loader, cifar_loader]
+
+`train_dataloader(self, *args: Any, **kwargs: Any) ‑&gt; Union[torch.utils.data.dataloader.DataLoader, Sequence[torch.utils.data.dataloader.DataLoader], Sequence[Sequence[torch.utils.data.dataloader.DataLoader]], Sequence[Dict[str, torch.utils.data.dataloader.DataLoader]], Dict[str, torch.utils.data.dataloader.DataLoader], Dict[str, Dict[str, torch.utils.data.dataloader.DataLoader]], Dict[str, Sequence[torch.utils.data.dataloader.DataLoader]]]`
+:   Generates one or multiple Pytorch DataLoaders for training.
+
+    Returns
+    -------
+    _ : Collection of DataLoader
+        Collection of train dataloaders specifying training samples.
+
+    Examples
+    -------
+    # single dataloader
+    def train_dataloader(self):
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (1.0,))
+        ])
+        dataset = MNIST(
+            root='/path/to/mnist/',
+            train=True,
+            transform=transform,
+            download=True
+        )
+        loader = torch.utils.data.DataLoader(
+            dataset=dataset,
+            batch_size=self.batch_size,
+            shuffle=True
+        )
+        return loader
+
+    # multiple dataloaders, return as list
+    def train_dataloader(self):
+        mnist = MNIST(...)
+        cifar = CIFAR(...)
+        mnist_loader = torch.utils.data.DataLoader(
+            dataset=mnist, batch_size=self.batch_size, shuffle=True
+        )
+        cifar_loader = torch.utils.data.DataLoader(
+            dataset=cifar, batch_size=self.batch_size, shuffle=True
+        )
+        # each batch will be a list of tensors: [batch_mnist, batch_cifar]
+        return [mnist_loader, cifar_loader]
+
+    # multiple dataloader, return as dict
+    def train_dataloader(self):
+        mnist = MNIST(...)
+        cifar = CIFAR(...)
+        mnist_loader = torch.utils.data.DataLoader(
+            dataset=mnist, batch_size=self.batch_size, shuffle=True
+        )
+        cifar_loader = torch.utils.data.DataLoader(
+            dataset=cifar, batch_size=self.batch_size, shuffle=True
+        )
+        # each batch will be a dict of
+        tensors: {'mnist': batch_mnist, 'cifar': batch_cifar}
+        return {'mnist': mnist_loader, 'cifar': cifar_loader}
+
+`val_dataloader(self, *args: Any, **kwargs: Any) ‑&gt; Union[torch.utils.data.dataloader.DataLoader, Sequence[torch.utils.data.dataloader.DataLoader]]`
+:   Generates one or multiple Pytorch DataLoaders for validation.
+
+    Returns
+    -------
+    _ : Collection of DataLoader
+        Collection of validation dataloaders specifying validation samples.
+
+    Examples
+    -------
+    # single dataloader
+    def val_dataloader(self):
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (1.0,))
+        ])
+        dataset = MNIST(
+            root='/path/to/mnist/',
+            train=False,
+            transform=transform,
+            download=True
+        )
+        loader = torch.utils.data.DataLoader(
+            dataset=dataset,
+            batch_size=self.batch_size,
+            shuffle=False
+        )
+        return loader
+
+    # multiple dataloaders, return as list
+    def val_dataloader(self):
+        mnist = MNIST(...)
+        cifar = CIFAR(...)
+        mnist_loader = torch.utils.data.DataLoader(
+            dataset=mnist, batch_size=self.batch_size, shuffle=False
+        )
+        cifar_loader = torch.utils.data.DataLoader(
+            dataset=cifar, batch_size=self.batch_size, shuffle=False
+        )
+        # each batch will be a list of tensors: [batch_mnist, batch_cifar]
+        return [mnist_loader, cifar_loader]
+</code></pre>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../../version/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Version" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Version
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../datautils/" class="md-footer__link md-footer__link--next" aria-label="Next: Data Utils" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Data Utils
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Project maintained by the folks at <a target=_blanks href="https://gpn.pitt.edu/">GPN</a>.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../..", "features": [], "search": "../../../assets/javascripts/workers/search.5e67fbfe.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.c44cc438.min.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
