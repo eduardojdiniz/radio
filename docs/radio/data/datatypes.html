@@ -1,0 +1,2892 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>radio.data.datatypes API documentation</title>
+<meta name="description" content="Sample
+Variables and Types definition." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>radio.data.datatypes</code></h1>
+</header>
+<section id="section-intro">
+<p>Sample
+Variables and Types definition.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python
+# coding=utf-8
+&#34;&#34;&#34;
+Sample  Variables and Types definition.
+&#34;&#34;&#34;
+
+from __future__ import annotations
+from pathlib import Path
+from typing import (Dict, Generic, List, Mapping, Sequence, TypeVar, Union,
+                    cast, Tuple, Any)
+from dataclasses import dataclass, astuple, field, InitVar
+from collections import OrderedDict
+import matplotlib.pyplot as plt  # type: ignore
+import torch
+from PIL import Image
+
+plt.rcParams[&#34;savefig.bbox&#34;] = &#34;tight&#34;
+
+KeyVar = TypeVar(&#34;KeyVar&#34;, bound=str)
+
+SAMPLES = [&#34;Tensor&#34;, &#34;MutableTensor&#34;, &#34;Img&#34;, &#34;MutableImg&#34;]
+NAMED_SAMPLES = [
+    &#34;NamedTensor&#34;, &#34;MutableNamedTensor&#34;, &#34;NamedImg&#34;, &#34;MutableNamedImg&#34;
+]
+
+Type = TypeVar(&#34;Type&#34;)
+GenericTrainType = (Union[(
+    Type,
+    Sequence[Type],
+    Sequence[Sequence[Type]],
+    Sequence[Dict[str, Type]],
+    Dict[str, Type],
+    Dict[str, Dict[str, Type]],
+    Dict[str, Sequence[Type]],
+)])
+
+GenericEvalType = Union[Type, Sequence[Type]]
+
+EvalSizeType = GenericEvalType[int]
+TrainSizeType = GenericTrainType[int]
+
+TripletIntType = Tuple[int, int, int]
+SpatialShapeType = Union[int, TripletIntType]
+SubjPathType = OrderedDict[Tuple[str, str], Path]
+SubjDictType = OrderedDict[Tuple[str, str], OrderedDict[str, Any]]
+
+# ############
+# Sample Types
+# ############
+
+SingletonVar = TypeVar(&#34;SingletonVar&#34;, Image.Image, torch.Tensor)
+
+
+def get_sample_type(sample_name: str) -&gt; type:
+    &#34;&#34;&#34;
+    Infer sample type from sample name.
+
+    Parameters
+    ----------
+    sample_name: str
+        Sample name, e.g., ``&#39;Tensor&#39;`.
+
+    Returns
+    -------
+    sample_type: torch.Tensor or Image.Image
+        Sample type, e.g., ``torch.Tensor``.
+    &#34;&#34;&#34;
+    assert sample_name in SAMPLES + NAMED_SAMPLES
+
+    if &#34;Tensor&#34; in sample_name:
+        return torch.Tensor
+    return Image.Image
+
+
+# Unbounded Sample Types
+@dataclass(frozen=True, repr=False)
+class Sample(Generic[SingletonVar]):
+    &#34;&#34;&#34;Immutable Sample Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: SingletonVar
+    sample_type: InitVar[str] = &#34;Sample&#34;
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self.data, SampleType):
+            object.__setattr__(self, &#34;data&#34;, self.data.data)
+
+    def __repr__(self):
+        return f&#34;radio.{self.__class__.__qualname__}({self.data})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+
+@dataclass(repr=False)
+class MutableSample(Generic[SingletonVar]):
+    &#34;&#34;&#34;Mutable Sample Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    _data: SingletonVar
+    sample_type: InitVar[str] = &#34;MutableSample&#34;
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self._data, SampleType):
+            object.__setattr__(self, &#34;data&#34;, self._data.data)
+
+    @property
+    def data(self) -&gt; SingletonVar:
+        &#34;&#34;&#34;data attribute&#34;&#34;&#34;
+        return self._data
+
+    @data.setter
+    def data(self, data: SingletonVar) -&gt; None:
+        if isinstance(data, SampleType):
+            self._data = data.data
+        else:
+            self._data = data
+
+    def __repr__(self):
+        return f&#34;radio.{self.__class__.__qualname__}({self.data})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+
+# Bounded Sample Types
+# Can also declare the bounded types using ``NewType``. E.g.,
+# Tensor = NewType(&#34;Tensor&#34;, Sample[torch.Tensor])
+@dataclass(frozen=True, repr=False)
+class Tensor(Sample[torch.Tensor]):
+    &#34;&#34;&#34;Immutable Tensor Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;TorchTensor&#34;
+
+
+@dataclass(frozen=True, repr=False)
+class Img(Sample[Image.Image]):
+    &#34;&#34;&#34;Immutable Image Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;PILImage&#34;
+
+
+@dataclass(repr=False)
+class MutableTensor(MutableSample[torch.Tensor]):
+    &#34;&#34;&#34;Mutable Tensor Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;TorchTensor&#34;
+
+
+@dataclass(repr=False)
+class MutableImg(MutableSample[Image.Image]):
+    &#34;&#34;&#34;Mutable Image Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;PILImage&#34;
+
+
+# ##################
+# Named Sample Types
+# ##################
+
+
+# Unbounded Named Sample Types
+@dataclass(frozen=True, repr=False)
+class NamedSample(Generic[KeyVar, SingletonVar]):
+    &#34;&#34;&#34;Immutable Named Sample Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;name&#34;, &#34;data&#34;)
+    #: data given name
+    name: KeyVar
+    data: SingletonVar
+    sample_type: InitVar[str] = &#34;Sample&#34;
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self.data, (NamedSample, MutableNamedSample)):
+            object.__setattr__(self, &#34;data&#34;, self.data.data)
+
+    def __repr__(self):
+        dictstring = f&#34;{{{self.name}: {self.data}}}&#34;
+        return f&#34;radio.{self.__class__.__qualname__}({dictstring})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+
+@dataclass(repr=False)
+class MutableNamedSample(Generic[KeyVar, SingletonVar]):
+    &#34;&#34;&#34;Mutable Named Sample Type.&#34;&#34;&#34;
+
+    #: data given name
+    _name: KeyVar
+    _data: SingletonVar
+    sample_type: InitVar[str] = &#34;MutableSample&#34;
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self._data, SampleType):
+            object.__setattr__(self, &#34;data&#34;, self._data.data)
+
+    @property
+    def data(self) -&gt; SingletonVar:
+        &#34;&#34;&#34;data attribute&#34;&#34;&#34;
+        return self._data
+
+    @data.setter
+    def data(self, data: SingletonVar) -&gt; None:
+        if isinstance(data, SampleType):
+            self._data = data.data
+        else:
+            self._data = data
+
+    @property
+    def name(self) -&gt; KeyVar:
+        &#34;&#34;&#34;name attribute&#34;&#34;&#34;
+        return self._name
+
+    @name.setter
+    def name(self, name: KeyVar) -&gt; None:
+        self._name = name
+
+    def __repr__(self):
+        dictstring = f&#34;{{{self.name}: {self.data}}}&#34;
+        return f&#34;radio.{self.__class__.__qualname__}({dictstring})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+
+# Bounded Named Sample Types
+@dataclass(frozen=True, repr=False)
+class NamedTensor(NamedSample[str, torch.Tensor]):
+    &#34;&#34;&#34;Immutable Named Tensor Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;TorchTensor&#34;
+
+
+@dataclass(frozen=True, repr=False)
+class NamedImg(NamedSample[str, Image.Image]):
+    &#34;&#34;&#34;Immutable Named Image Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;PILImage&#34;
+
+
+@dataclass(repr=False)
+class MutableNamedTensor(MutableNamedSample[str, torch.Tensor]):
+    &#34;&#34;&#34;Mutable Named Tensor Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;TorchTensor&#34;
+
+
+@dataclass(repr=False)
+class MutableNamedImg(MutableNamedSample[str, Image.Image]):
+    &#34;&#34;&#34;Mutable Named Image Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;PILImage&#34;
+
+
+# Generic Sequene of Samples Types
+SampleVar = TypeVar(
+    &#34;SampleVar&#34;,
+    Sample,
+    NamedSample,
+    MutableSample,
+    MutableNamedSample,
+    Tensor,
+    Img,
+    NamedTensor,
+    NamedImg,
+    MutableTensor,
+    MutableImg,
+    MutableNamedTensor,
+    MutableNamedImg,
+)
+
+SampleType = (Sample, NamedSample, MutableSample, MutableNamedSample)
+
+# ####################
+# Hybrid Samples Types
+# ####################
+
+HybridSample = Union[SingletonVar, SampleVar]
+HybridNamedSample = Union[Dict[str, SingletonVar], Dict[str, SampleVar]]
+
+# Tensors
+HybridTensor = HybridSample[torch.Tensor, Tensor]
+HybridNamedTensor = HybridNamedSample[torch.Tensor, NamedTensor]
+HybridMutableTensor = HybridSample[torch.Tensor, MutableTensor]
+HybridMutableNamedTensor = HybridNamedSample[torch.Tensor, MutableNamedTensor]
+
+# Imgs
+HybridImg = HybridSample[Image.Image, Img]
+HybridNamedImg = HybridNamedSample[Image.Image, NamedImg]
+HybridMutableImg = HybridSample[Image.Image, MutableImg]
+HybridMutableNamedImg = HybridNamedSample[Image.Image, MutableNamedImg]
+
+HybridSampleVar = TypeVar(
+    &#34;HybridSampleVar&#34;,
+    HybridTensor,
+    HybridNamedTensor,
+    HybridMutableTensor,
+    HybridMutableNamedTensor,
+    HybridImg,
+    HybridNamedImg,
+    HybridMutableImg,
+    HybridMutableNamedImg,
+)
+
+# #########################
+# Sequence of Samples Types
+# #########################
+
+Seq = Union[HybridSampleVar, Sequence[HybridSampleVar]]
+SeqVar = TypeVar(&#34;SeqVar&#34;, Seq[HybridTensor], Seq[HybridImg])
+MutableSeqVar = TypeVar(&#34;MutableSeqVar&#34;, Seq[HybridMutableTensor],
+                        Seq[HybridMutableImg])
+
+
+def _from_samples(class_name: str = &#34;Tensor&#34;,
+                  samples: Seq = None) -&gt; Sequence[SampleVar]:
+    &#34;&#34;&#34;
+    Gets a hybrid sequence of hybrid samples and outputs a sequence of samples.
+    &#34;&#34;&#34;
+    sample_list: List[SampleVar] = []
+    if samples is None:
+        return sample_list
+
+    assert class_name in SAMPLES, f&#34;{class_name} not a valid Sample Type.&#34;
+
+    sample_type: type
+    if &#34;Tensor&#34; in class_name:
+        sample_type = torch.Tensor
+    else:
+        sample_type = Image.Image
+
+    if not isinstance(samples, Sequence):
+        samples = [samples]
+
+    for sample in samples:
+        if isinstance(sample, sample_type):
+            sample = globals()[class_name](sample)
+            sample_list.append(sample)
+        else:
+            sample_list.append(sample)
+
+    return sample_list
+
+
+# Unbounded Sequence of Samples Types
+@dataclass(frozen=True, repr=False)
+class SeqSample(Generic[SeqVar]):
+    &#34;&#34;&#34;Immutable Sequence of Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: SeqVar
+    sample_type: InitVar[str] = &#34;Sample&#34;
+
+    def __post_init__(self, sample_type):
+        object.__setattr__(self, &#34;data&#34;, _from_samples(sample_type, self.data))
+
+    def __repr__(self):
+        return f&#34;radio.{self.__class__.__qualname__}({self.data})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)
+
+
+@dataclass(repr=False)
+class MutableSeqSample(Generic[MutableSeqVar]):
+    &#34;&#34;&#34;Mutable Sequence of Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: MutableSeqVar
+    sample_type: InitVar[str] = &#34;MutableSample&#34;
+
+    def __post_init__(self, sample_type):
+        object.__setattr__(self, &#34;data&#34;, _from_samples(sample_type, self.data))
+
+    def __repr__(self):
+        return f&#34;radio.{self.__class__.__qualname__}({self.data})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)
+
+
+# Bounded Sequence of Samples Types
+@dataclass(frozen=True, repr=False)
+class SeqTensor(SeqSample[Seq[HybridTensor]]):
+    &#34;&#34;&#34;Immutable Sequence of Tensors Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;Tensor&#34;
+
+
+@dataclass(frozen=True, repr=False)
+class SeqImg(SeqSample[Seq[HybridImg]]):
+    &#34;&#34;&#34;Immutable Sequence of Images Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;Img&#34;
+
+
+@dataclass(repr=False)
+class MutableSeqTensor(MutableSeqSample[Seq[HybridMutableTensor]]):
+    &#34;&#34;&#34;Mutable Sequence of Tensors Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;MutableTensor&#34;
+
+
+@dataclass(repr=False)
+class MutableSeqImg(MutableSeqSample[Seq[HybridMutableImg]]):
+    &#34;&#34;&#34;Mutable Sequence of Images Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;MutableImg&#34;
+
+
+# ###############################
+# Sequence of Named Samples Types
+# ###############################
+SeqNamedVar = TypeVar(&#34;SeqNamedVar&#34;, Seq[HybridNamedTensor],
+                      Seq[HybridNamedImg])
+MutableSeqNamedVar = TypeVar(&#34;MutableSeqNamedVar&#34;,
+                             Seq[HybridMutableNamedTensor],
+                             Seq[HybridMutableNamedImg])
+
+
+def _from_named_samples(  # noqa
+        class_name: str = &#34;NamedTensor&#34;,
+        samples: Seq = None) -&gt; Sequence[SampleVar]:
+    sample_list: List[SampleVar] = []
+    if not samples:
+        return sample_list
+    msg = f&#34;{class_name} not a valid named sample type.&#34;
+
+    assert class_name in NAMED_SAMPLES, msg
+    sample_type: type
+    if &#34;Tensor&#34; in class_name:
+        sample_type = torch.Tensor
+    else:
+        sample_type = Image.Image
+
+    if not isinstance(samples, Sequence):
+        samples = [samples]
+
+    def _parse_data(hybrid_sample: HybridSampleVar,
+                    name: str = None) -&gt; SampleVar:
+        if not isinstance(hybrid_sample, sample_type):
+            sample = cast(SampleVar, hybrid_sample)
+        if name:
+            sample = globals()[class_name](name, hybrid_sample)
+        else:
+            sample = globals()[class_name](hybrid_sample)
+        return sample
+
+    for sample in samples:
+        if isinstance(sample, Mapping):
+            for name, subsample in sample.items():
+                sample_list.append(_parse_data(subsample, name))
+        else:
+            for subsample in samples:
+                sample_list.append(_parse_data(subsample))
+
+    return sample_list
+
+
+# Unbounded Sequence of Named Samples Types
+@dataclass(frozen=True, repr=False)
+class SeqNamedSample(Generic[KeyVar, SeqNamedVar]):
+    &#34;&#34;&#34;Immutable Sequence of Named Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;name&#34;, &#34;data&#34;)
+    name: KeyVar
+    data: SeqNamedVar
+    sample_type: InitVar[str] = &#34;NamedSample&#34;
+
+    def __post_init__(self, sample_type):
+        object.__setattr__(self, &#34;data&#34;,
+                           _from_named_seq(sample_type, self.data))
+
+    def __repr__(self):
+        dictstring = f&#34;{{{self.name}: {self.data}}}&#34;
+        return f&#34;radio.{self.__class__.__qualname__}({dictstring})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+
+@dataclass(repr=False)
+class MutableSeqNamedSample(Generic[KeyVar, MutableSeqNamedVar]):
+    &#34;&#34;&#34;Mutable Sequence of Named Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;name&#34;, &#34;data&#34;)
+    name: KeyVar
+    data: MutableSeqNamedVar
+    sample_type: InitVar[str] = &#34;MutableNamedSample&#34;
+
+    def __post_init__(self, sample_type):
+        object.__setattr__(self, &#34;data&#34;,
+                           _from_named_seq(sample_type, self.data))
+
+    def __repr__(self):
+        dictstring = f&#34;{{{self.name}: {self.data}}}&#34;
+        return f&#34;radio.{self.__class__.__qualname__}({dictstring})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)
+
+
+# Bounded Sequence of Named Samples Types
+@dataclass(frozen=True, repr=False)
+class SeqNamedTensor(SeqNamedSample[str, Seq[HybridNamedTensor]]):
+    &#34;&#34;&#34;Immutable Sequence of Named Tensors Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;NamedTensor&#34;
+
+
+@dataclass(frozen=True, repr=False)
+class SeqNamedImg(SeqNamedSample[str, Seq[HybridNamedImg]]):
+    &#34;&#34;&#34;Immutable Sequence of Named Images Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;NamedImg&#34;
+
+
+@dataclass(repr=False)
+class MutableSeqNamedTensor(
+        MutableSeqNamedSample[str, Seq[HybridMutableNamedTensor]]):
+    &#34;&#34;&#34;Mutable Sequence of NamedTensors Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;MutableNamedTensor&#34;
+
+
+@dataclass(repr=False)
+class MutableSeqNamedImg(MutableSeqNamedSample[str,
+                                               Seq[HybridMutableNamedImg]]):
+    &#34;&#34;&#34;Mutable Sequence of Named Images Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;MutableNamedImg&#34;
+
+
+# Generic Sequence-based Types
+SeqSampleVar = TypeVar(
+    &#34;SeqSampleVar&#34;,
+    SeqTensor,
+    SeqImg,
+    SeqNamedTensor,
+    SeqNamedImg,
+    MutableSeqTensor,
+    MutableSeqImg,
+    MutableSeqNamedTensor,
+    MutableSeqNamedImg,
+)
+
+# ################################
+# Hybrid Sequence of Samples Types
+# ################################
+
+HybridSeqSample = Union[HybridSampleVar, Sequence[HybridSampleVar],
+                        SeqSampleVar]
+HybridNamedSeqSample = Union[Dict[str, HybridSampleVar],
+                             Dict[str, Sequence[HybridSampleVar]],
+                             Dict[str, SeqSampleVar], ]
+
+# Tensors
+HybridSeqTensor = HybridSeqSample[HybridTensor, SeqTensor]
+HybridNamedSeqTensor = HybridNamedSeqSample[HybridNamedTensor, SeqNamedTensor]
+HybridMutableSeqTensor = HybridSeqSample[HybridMutableTensor, MutableSeqTensor]
+HybridMutableNamedSeqTensor = HybridNamedSeqSample[HybridMutableNamedTensor,
+                                                   MutableSeqNamedTensor]
+
+# Imgs
+HybridSeqImg = HybridSeqSample[HybridImg, SeqImg]
+HybridNamedSeqImg = HybridNamedSeqSample[HybridNamedImg, SeqNamedImg]
+HybridMutableSeqImg = HybridSeqSample[HybridMutableImg, MutableSeqNamedImg]
+HybridMutableNamedSeqImg = HybridNamedSeqSample[HybridMutableNamedImg,
+                                                MutableSeqNamedImg]
+
+HybridSeqSampleVar = TypeVar(
+    &#34;HybridSeqSampleVar&#34;,
+    HybridSeqTensor,
+    HybridNamedSeqTensor,
+    HybridMutableSeqTensor,
+    HybridMutableNamedSeqTensor,
+    HybridSeqImg,
+    HybridNamedSeqImg,
+    HybridMutableSeqImg,
+    HybridMutableNamedSeqImg,
+)
+
+# #####################################
+# Sequence of Sequence of Samples Types
+# #####################################
+
+SeqSeq = Union[HybridSeqSampleVar, Sequence[HybridSeqSampleVar]]
+SeqSeqVar = TypeVar(&#34;SeqSeqVar&#34;, SeqSeq[HybridSeqTensor], SeqSeq[HybridSeqImg])
+MutableSeqSeqVar = TypeVar(&#34;MutableSeqSeqVar&#34;, SeqSeq[HybridMutableSeqTensor],
+                           SeqSeq[HybridMutableSeqImg])
+
+
+def _from_seq(class_name: str = &#34;Tensor&#34;,
+              samples: SeqSeq = None) -&gt; Sequence[SeqSampleVar]:
+    seq_list: List[SeqSampleVar] = []
+    if not samples:
+        return seq_list
+
+    assert class_name in SAMPLES, f&#34;{class_name} not a valid Sample Type.&#34;
+
+    if not isinstance(samples, Sequence):
+        samples = [samples]
+
+    for sample in samples:
+        if isinstance(sample, type(Seq)):
+            sample = globals()[&#34;Seq&#34; + class_name](sample)
+            seq_list.append(sample)
+        else:
+            seq_list.append(sample)
+
+    return seq_list
+
+
+@dataclass(frozen=True)
+class SeqSeqSample(Generic[SeqSeqVar]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: SeqSeqVar
+    sample_type: str = field(default=&#34;SeqSample&#34;, init=False)
+
+    def __post_init__(self):
+        self.data = _from_seq(self.sample_type, self.data)
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)
+
+
+@dataclass
+class MutableSeqSeqSample(Generic[MutableSeqSeqVar]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: MutableSeqSeqVar
+    sample_type: str = field(default=&#34;MutableSeqSample&#34;, init=False)
+
+    def __post_init__(self):
+        self.data = _from_seq(self.sample_type, self.data)
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)
+
+
+# Bounded Nested Sequence of Samples Types
+@dataclass(frozen=True)
+class SeqSeqTensor(SeqSeqSample[SeqSeq[HybridSeqTensor]]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Tensors Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;SeqTensor&#34;, init=False)
+
+
+@dataclass(frozen=True)
+class SeqSeqImg(SeqSeqSample[SeqSeq[HybridSeqImg]]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Images Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;SeqImg&#34;, init=False)
+
+
+@dataclass
+class MutableSeqSeqTensor(MutableSeqSeqSample[SeqSeq[HybridMutableSeqTensor]]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Tensors Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;MutableSeqTensor&#34;, init=False)
+
+
+@dataclass
+class MutableSeqSeqImg(MutableSeqSeqSample[SeqSeq[HybridMutableSeqImg]]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Images Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;MutableSeqImg&#34;, init=False)
+
+
+# ###########################################
+# Sequence of Sequence of Named Samples Types
+# ###########################################
+
+SeqSeqNamedVar = TypeVar(&#34;SeqSeqNamedVar&#34;, SeqSeq[HybridNamedSeqTensor],
+                         SeqSeq[HybridNamedSeqImg])
+MutableSeqSeqNamedVar = TypeVar(
+    &#34;MutableSeqSeqNamedVar&#34;,
+    SeqSeq[HybridMutableNamedSeqTensor],
+    SeqSeq[HybridMutableNamedSeqImg],
+)
+
+
+def _from_named_seq(class_name: str = &#34;NamedTensor&#34;,
+                    samples: SeqSeq = None) -&gt; Sequence[SeqSampleVar]:
+    seq_list: List[SeqSampleVar] = []
+    if not samples:
+        return seq_list
+    msg = f&#34;{class_name} not a valid named sample type.&#34;
+    assert class_name in NAMED_SAMPLES, msg
+
+    if not isinstance(samples, Sequence):
+        samples = [samples]
+
+    for sample in samples:
+        if isinstance(sample, type(Seq)):
+            sample = globals()[&#34;Seq&#34; + class_name](sample)
+            seq_list.append(sample)
+        else:
+            seq_list.append(sample)
+
+    return seq_list
+
+
+@dataclass(frozen=True)
+class SeqSeqNamedSample(Generic[SeqSeqNamedVar]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Named Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    sample_type: str = field(default=&#34;SeqNamedSample&#34;, init=False)
+    data: SeqSeqNamedVar
+
+    def __post_init__(self):
+        self.data = _from_named_seq(self.sample_type, self.data)
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)
+
+
+@dataclass
+class MutableSeqSeqNamedSample(Generic[MutableSeqSeqNamedVar]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Named Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    sample_type: str = field(default=&#34;MutableSeqNamedSample&#34;, init=False)
+    data: MutableSeqSeqNamedVar
+
+    def __post_init__(self):
+        self.data = _from_named_seq(self.sample_type, self.data)
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)
+
+
+# Bounded Nested Sequence of Samples Types
+@dataclass(frozen=True)
+class SeqSeqNamedTensor(SeqSeqNamedSample[SeqSeq[HybridNamedSeqTensor]]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Named Tensors Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;SeqNamedTensor&#34;, init=False)
+
+
+@dataclass(frozen=True)
+class SeqSeqNamedImg(SeqSeqNamedSample[SeqSeq[HybridNamedSeqImg]]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Named Images Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;SeqNamedImg&#34;, init=False)
+
+
+@dataclass
+class MutableSeqSeqNamedTensor(
+        MutableSeqSeqNamedSample[SeqSeq[HybridMutableNamedSeqTensor]]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Named Tensors Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;MutableSeqNamedTensor&#34;, init=False)
+
+
+@dataclass
+class MutableSeqSeqNamedImg(
+        MutableSeqSeqNamedSample[SeqSeq[HybridMutableNamedSeqImg]]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Named Images Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;MutableSeqNamedImg&#34;, init=False)
+
+
+# Generic Nested Sequence-based Types
+SeqSeqSampleVar = TypeVar(
+    &#34;SeqSeqSampleVar&#34;,
+    SeqSeqTensor,
+    SeqSeqImg,
+    SeqSeqNamedTensor,
+    SeqSeqNamedImg,
+    MutableSeqSeqTensor,
+    MutableSeqSeqImg,
+    MutableSeqSeqNamedTensor,
+    MutableSeqSeqNamedImg,
+)
+
+# #######################################
+# Hybrid Nested Sequence of Samples Types
+# #######################################
+HybridSeqSeqSample = Union[HybridSeqSampleVar, Sequence[HybridSeqSampleVar],
+                           SeqSeqSampleVar]
+HybridNamedSeqSeqSample = Union[Dict[str, HybridSeqSampleVar],
+                                Dict[str, Sequence[HybridSeqSampleVar]],
+                                Dict[str, SeqSeqSampleVar], ]
+
+# Tensors
+HybridSeqSeqTensor = HybridSeqSeqSample[HybridSeqTensor, SeqSeqTensor]
+HybridNamedSeqSeqTensor = HybridNamedSeqSeqSample[HybridNamedSeqTensor,
+                                                  SeqSeqNamedTensor]
+HybridMutableSeqSeqTensor = HybridSeqSeqSample[HybridMutableSeqTensor,
+                                               MutableSeqSeqTensor]
+HybridMutableNamedSeqSeqTensor = HybridNamedSeqSeqSample[
+    HybridMutableNamedSeqTensor, MutableSeqSeqNamedTensor]
+
+# Imgs
+HybridSeqSeqImg = HybridSeqSeqSample[HybridSeqImg, SeqSeqImg]
+HybridNamedSeqSeqImg = HybridNamedSeqSeqSample[HybridNamedSeqImg,
+                                               SeqSeqNamedImg]
+HybridMutableSeqSeqImg = HybridSeqSeqSample[HybridMutableSeqImg,
+                                            MutableSeqSeqNamedImg]
+HybridMutableNamedSeqSeqImg = HybridNamedSeqSeqSample[HybridMutableNamedSeqImg,
+                                                      MutableSeqSeqNamedImg]
+
+HybridSeqSeqSampleVar = TypeVar(
+    &#34;HybridSeqSeqSampleVar&#34;,
+    HybridSeqSeqTensor,
+    HybridNamedSeqSeqTensor,
+    HybridMutableSeqSeqTensor,
+    HybridMutableNamedSeqSeqTensor,
+    HybridSeqSeqImg,
+    HybridNamedSeqSeqImg,
+    HybridMutableSeqSeqImg,
+    HybridMutableNamedSeqSeqImg,
+)
+
+# ##############
+# Umbrella Types
+# ##############
+
+# Umbrella bounded Sample Types
+MultiImg = Union[HybridImg, HybridSeqImg, HybridSeqSeqImg]
+MutableMultiImg = Union[HybridMutableImg, HybridMutableSeqImg,
+                        HybridMutableSeqSeqImg]
+MultiTensor = Union[HybridTensor, HybridSeqTensor, HybridSeqSeqTensor]
+MutableMultiTensor = Union[HybridMutableTensor, HybridMutableSeqTensor,
+                           HybridMutableSeqSeqTensor]
+
+# Aliases
+Imgs = MultiImg
+MutableImgs = MutableMultiImg
+Tensors = MultiTensor
+MutableTensors = MutableMultiTensor
+
+# ###########################
+# Umbrella Named Sample Types
+# ###########################
+
+# Umbrella Unbounded Sample Types
+
+# Umbrella bounded Sample Types
+MultiNamedImg = Union[HybridNamedImg, HybridNamedSeqImg, HybridNamedSeqSeqImg]
+MutableMultiNamedImg = Union[HybridMutableNamedImg, HybridMutableNamedSeqImg,
+                             HybridMutableNamedSeqSeqImg]
+MultiNamedTensor = Union[HybridNamedTensor, HybridNamedSeqTensor,
+                         HybridNamedSeqSeqTensor]
+MutableMultiNamedTensor = Union[HybridMutableNamedTensor,
+                                HybridMutableNamedSeqTensor,
+                                HybridMutableNamedSeqSeqTensor, ]
+
+# Aliases
+NamedImgs = MultiNamedImg
+MutableNamedImgs = MutableMultiNamedImg
+NamedTensors = MultiNamedTensor
+MutableNamedTensors = MutableMultiNamedTensor</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="radio.data.datatypes.get_sample_type"><code class="name flex">
+<span>def <span class="ident">get_sample_type</span></span>(<span>sample_name: str) ‑> type</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Infer sample type from sample name.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>sample_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Sample name, e.g., <code>`'Tensor'</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>sample_type</code></strong> :&ensp;<code>torch.Tensor</code> or <code>Image.Image</code></dt>
+<dd>Sample type, e.g., <code>torch.Tensor</code>.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sample_type(sample_name: str) -&gt; type:
+    &#34;&#34;&#34;
+    Infer sample type from sample name.
+
+    Parameters
+    ----------
+    sample_name: str
+        Sample name, e.g., ``&#39;Tensor&#39;`.
+
+    Returns
+    -------
+    sample_type: torch.Tensor or Image.Image
+        Sample type, e.g., ``torch.Tensor``.
+    &#34;&#34;&#34;
+    assert sample_name in SAMPLES + NAMED_SAMPLES
+
+    if &#34;Tensor&#34; in sample_name:
+        return torch.Tensor
+    return Image.Image</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="radio.data.datatypes.Img"><code class="flex name class">
+<span>class <span class="ident">Img</span></span>
+<span>(</span><span>data: SingletonVar, sample_type: InitVar[str] = 'PILImage')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Image Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class Img(Sample[Image.Image]):
+    &#34;&#34;&#34;Immutable Image Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;PILImage&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.Sample" href="#radio.data.datatypes.Sample">Sample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.Img.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.Sample" href="#radio.data.datatypes.Sample">Sample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.Sample.data" href="#radio.data.datatypes.Sample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableImg"><code class="flex name class">
+<span>class <span class="ident">MutableImg</span></span>
+<span>(</span><span>_data: SingletonVar, sample_type: InitVar[str] = 'PILImage')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Image Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableImg(MutableSample[Image.Image]):
+    &#34;&#34;&#34;Mutable Image Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;PILImage&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSample" href="#radio.data.datatypes.MutableSample">MutableSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSample" href="#radio.data.datatypes.MutableSample">MutableSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSample.data" href="#radio.data.datatypes.MutableSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableNamedImg"><code class="flex name class">
+<span>class <span class="ident">MutableNamedImg</span></span>
+<span>(</span><span>_name: KeyVar, _data: SingletonVar, sample_type: InitVar[str] = 'PILImage')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Named Image Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableNamedImg(MutableNamedSample[str, Image.Image]):
+    &#34;&#34;&#34;Mutable Named Image Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;PILImage&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableNamedSample" href="#radio.data.datatypes.MutableNamedSample">MutableNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableNamedImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableNamedSample" href="#radio.data.datatypes.MutableNamedSample">MutableNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableNamedSample.data" href="#radio.data.datatypes.MutableNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableNamedSample.name" href="#radio.data.datatypes.MutableNamedSample.name">name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableNamedSample"><code class="flex name class">
+<span>class <span class="ident">MutableNamedSample</span></span>
+<span>(</span><span>_name: KeyVar, _data: SingletonVar, sample_type: InitVar[str] = 'MutableSample')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Named Sample Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableNamedSample(Generic[KeyVar, SingletonVar]):
+    &#34;&#34;&#34;Mutable Named Sample Type.&#34;&#34;&#34;
+
+    #: data given name
+    _name: KeyVar
+    _data: SingletonVar
+    sample_type: InitVar[str] = &#34;MutableSample&#34;
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self._data, SampleType):
+            object.__setattr__(self, &#34;data&#34;, self._data.data)
+
+    @property
+    def data(self) -&gt; SingletonVar:
+        &#34;&#34;&#34;data attribute&#34;&#34;&#34;
+        return self._data
+
+    @data.setter
+    def data(self, data: SingletonVar) -&gt; None:
+        if isinstance(data, SampleType):
+            self._data = data.data
+        else:
+            self._data = data
+
+    @property
+    def name(self) -&gt; KeyVar:
+        &#34;&#34;&#34;name attribute&#34;&#34;&#34;
+        return self._name
+
+    @name.setter
+    def name(self, name: KeyVar) -&gt; None:
+        self._name = name
+
+    def __repr__(self):
+        dictstring = f&#34;{{{self.name}: {self.data}}}&#34;
+        return f&#34;radio.{self.__class__.__qualname__}({dictstring})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableNamedImg" href="#radio.data.datatypes.MutableNamedImg">MutableNamedImg</a></li>
+<li><a title="radio.data.datatypes.MutableNamedTensor" href="#radio.data.datatypes.MutableNamedTensor">MutableNamedTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableNamedSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableNamedSample.data"><code class="name">var <span class="ident">data</span> : ~SingletonVar</code></dt>
+<dd>
+<div class="desc"><p>data attribute</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def data(self) -&gt; SingletonVar:
+    &#34;&#34;&#34;data attribute&#34;&#34;&#34;
+    return self._data</code></pre>
+</details>
+</dd>
+<dt id="radio.data.datatypes.MutableNamedSample.name"><code class="name">var <span class="ident">name</span> : ~KeyVar</code></dt>
+<dd>
+<div class="desc"><p>name attribute</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def name(self) -&gt; KeyVar:
+    &#34;&#34;&#34;name attribute&#34;&#34;&#34;
+    return self._name</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.MutableNamedTensor"><code class="flex name class">
+<span>class <span class="ident">MutableNamedTensor</span></span>
+<span>(</span><span>_name: KeyVar, _data: SingletonVar, sample_type: InitVar[str] = 'TorchTensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Named Tensor Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableNamedTensor(MutableNamedSample[str, torch.Tensor]):
+    &#34;&#34;&#34;Mutable Named Tensor Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;TorchTensor&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableNamedSample" href="#radio.data.datatypes.MutableNamedSample">MutableNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableNamedTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableNamedSample" href="#radio.data.datatypes.MutableNamedSample">MutableNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableNamedSample.data" href="#radio.data.datatypes.MutableNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableNamedSample.name" href="#radio.data.datatypes.MutableNamedSample.name">name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableSample"><code class="flex name class">
+<span>class <span class="ident">MutableSample</span></span>
+<span>(</span><span>_data: SingletonVar, sample_type: InitVar[str] = 'MutableSample')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Sample Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableSample(Generic[SingletonVar]):
+    &#34;&#34;&#34;Mutable Sample Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    _data: SingletonVar
+    sample_type: InitVar[str] = &#34;MutableSample&#34;
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self._data, SampleType):
+            object.__setattr__(self, &#34;data&#34;, self._data.data)
+
+    @property
+    def data(self) -&gt; SingletonVar:
+        &#34;&#34;&#34;data attribute&#34;&#34;&#34;
+        return self._data
+
+    @data.setter
+    def data(self, data: SingletonVar) -&gt; None:
+        if isinstance(data, SampleType):
+            self._data = data.data
+        else:
+            self._data = data
+
+    def __repr__(self):
+        return f&#34;radio.{self.__class__.__qualname__}({self.data})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableImg" href="#radio.data.datatypes.MutableImg">MutableImg</a></li>
+<li><a title="radio.data.datatypes.MutableTensor" href="#radio.data.datatypes.MutableTensor">MutableTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSample.data"><code class="name">var <span class="ident">data</span> : ~SingletonVar</code></dt>
+<dd>
+<div class="desc"><p>data attribute</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def data(self) -&gt; SingletonVar:
+    &#34;&#34;&#34;data attribute&#34;&#34;&#34;
+    return self._data</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqImg"><code class="flex name class">
+<span>class <span class="ident">MutableSeqImg</span></span>
+<span>(</span><span>data: MutableSeqVar, sample_type: InitVar[str] = 'MutableImg')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Sequence of Images Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableSeqImg(MutableSeqSample[Seq[HybridMutableImg]]):
+    &#34;&#34;&#34;Mutable Sequence of Images Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;MutableImg&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqSample" href="#radio.data.datatypes.MutableSeqSample">MutableSeqSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSeqSample" href="#radio.data.datatypes.MutableSeqSample">MutableSeqSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSeqSample.data" href="#radio.data.datatypes.MutableSeqSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqNamedImg"><code class="flex name class">
+<span>class <span class="ident">MutableSeqNamedImg</span></span>
+<span>(</span><span>name: KeyVar, data: MutableSeqNamedVar, sample_type: InitVar[str] = 'MutableNamedImg')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Sequence of Named Images Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableSeqNamedImg(MutableSeqNamedSample[str,
+                                               Seq[HybridMutableNamedImg]]):
+    &#34;&#34;&#34;Mutable Sequence of Named Images Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;MutableNamedImg&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqNamedSample" href="#radio.data.datatypes.MutableSeqNamedSample">MutableSeqNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqNamedImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSeqNamedSample" href="#radio.data.datatypes.MutableSeqNamedSample">MutableSeqNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSeqNamedSample.data" href="#radio.data.datatypes.MutableSeqNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableSeqNamedSample.name" href="#radio.data.datatypes.MutableSeqNamedSample.name">name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqNamedSample"><code class="flex name class">
+<span>class <span class="ident">MutableSeqNamedSample</span></span>
+<span>(</span><span>name: KeyVar, data: MutableSeqNamedVar, sample_type: InitVar[str] = 'MutableNamedSample')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Sequence of Named Samples Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableSeqNamedSample(Generic[KeyVar, MutableSeqNamedVar]):
+    &#34;&#34;&#34;Mutable Sequence of Named Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;name&#34;, &#34;data&#34;)
+    name: KeyVar
+    data: MutableSeqNamedVar
+    sample_type: InitVar[str] = &#34;MutableNamedSample&#34;
+
+    def __post_init__(self, sample_type):
+        object.__setattr__(self, &#34;data&#34;,
+                           _from_named_seq(sample_type, self.data))
+
+    def __repr__(self):
+        dictstring = f&#34;{{{self.name}: {self.data}}}&#34;
+        return f&#34;radio.{self.__class__.__qualname__}({dictstring})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqNamedImg" href="#radio.data.datatypes.MutableSeqNamedImg">MutableSeqNamedImg</a></li>
+<li><a title="radio.data.datatypes.MutableSeqNamedTensor" href="#radio.data.datatypes.MutableSeqNamedTensor">MutableSeqNamedTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqNamedSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqNamedSample.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqNamedSample.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqNamedTensor"><code class="flex name class">
+<span>class <span class="ident">MutableSeqNamedTensor</span></span>
+<span>(</span><span>name: KeyVar, data: MutableSeqNamedVar, sample_type: InitVar[str] = 'MutableNamedTensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Sequence of NamedTensors Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableSeqNamedTensor(
+        MutableSeqNamedSample[str, Seq[HybridMutableNamedTensor]]):
+    &#34;&#34;&#34;Mutable Sequence of NamedTensors Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;MutableNamedTensor&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqNamedSample" href="#radio.data.datatypes.MutableSeqNamedSample">MutableSeqNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqNamedTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSeqNamedSample" href="#radio.data.datatypes.MutableSeqNamedSample">MutableSeqNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSeqNamedSample.data" href="#radio.data.datatypes.MutableSeqNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableSeqNamedSample.name" href="#radio.data.datatypes.MutableSeqNamedSample.name">name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqSample"><code class="flex name class">
+<span>class <span class="ident">MutableSeqSample</span></span>
+<span>(</span><span>data: MutableSeqVar, sample_type: InitVar[str] = 'MutableSample')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Sequence of Samples Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableSeqSample(Generic[MutableSeqVar]):
+    &#34;&#34;&#34;Mutable Sequence of Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: MutableSeqVar
+    sample_type: InitVar[str] = &#34;MutableSample&#34;
+
+    def __post_init__(self, sample_type):
+        object.__setattr__(self, &#34;data&#34;, _from_samples(sample_type, self.data))
+
+    def __repr__(self):
+        return f&#34;radio.{self.__class__.__qualname__}({self.data})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqImg" href="#radio.data.datatypes.MutableSeqImg">MutableSeqImg</a></li>
+<li><a title="radio.data.datatypes.MutableSeqTensor" href="#radio.data.datatypes.MutableSeqTensor">MutableSeqTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSample.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqSeqImg"><code class="flex name class">
+<span>class <span class="ident">MutableSeqSeqImg</span></span>
+<span>(</span><span>data: MutableSeqSeqVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Nested Sequence of Images Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class MutableSeqSeqImg(MutableSeqSeqSample[SeqSeq[HybridMutableSeqImg]]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Images Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;MutableSeqImg&#34;, init=False)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqSeqSample" href="#radio.data.datatypes.MutableSeqSeqSample">MutableSeqSeqSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSeqImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSeqSeqSample" href="#radio.data.datatypes.MutableSeqSeqSample">MutableSeqSeqSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqSample.data" href="#radio.data.datatypes.MutableSeqSeqSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqSeqNamedImg"><code class="flex name class">
+<span>class <span class="ident">MutableSeqSeqNamedImg</span></span>
+<span>(</span><span>data: MutableSeqSeqNamedVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Nested Sequence of Named Images Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class MutableSeqSeqNamedImg(
+        MutableSeqSeqNamedSample[SeqSeq[HybridMutableNamedSeqImg]]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Named Images Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;MutableSeqNamedImg&#34;, init=False)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqSeqNamedSample" href="#radio.data.datatypes.MutableSeqSeqNamedSample">MutableSeqSeqNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSeqNamedImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSeqSeqNamedSample" href="#radio.data.datatypes.MutableSeqSeqNamedSample">MutableSeqSeqNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqNamedSample.data" href="#radio.data.datatypes.MutableSeqSeqNamedSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqSeqNamedSample"><code class="flex name class">
+<span>class <span class="ident">MutableSeqSeqNamedSample</span></span>
+<span>(</span><span>data: MutableSeqSeqNamedVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Nested Sequence of Named Samples Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class MutableSeqSeqNamedSample(Generic[MutableSeqSeqNamedVar]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Named Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    sample_type: str = field(default=&#34;MutableSeqNamedSample&#34;, init=False)
+    data: MutableSeqSeqNamedVar
+
+    def __post_init__(self):
+        self.data = _from_named_seq(self.sample_type, self.data)
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqSeqNamedImg" href="#radio.data.datatypes.MutableSeqSeqNamedImg">MutableSeqSeqNamedImg</a></li>
+<li><a title="radio.data.datatypes.MutableSeqSeqNamedTensor" href="#radio.data.datatypes.MutableSeqSeqNamedTensor">MutableSeqSeqNamedTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSeqNamedSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSeqNamedSample.data"><code class="name">var <span class="ident">data</span> : ~MutableSeqSeqNamedVar</code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqSeqNamedTensor"><code class="flex name class">
+<span>class <span class="ident">MutableSeqSeqNamedTensor</span></span>
+<span>(</span><span>data: MutableSeqSeqNamedVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Nested Sequence of Named Tensors Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class MutableSeqSeqNamedTensor(
+        MutableSeqSeqNamedSample[SeqSeq[HybridMutableNamedSeqTensor]]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Named Tensors Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;MutableSeqNamedTensor&#34;, init=False)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqSeqNamedSample" href="#radio.data.datatypes.MutableSeqSeqNamedSample">MutableSeqSeqNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSeqNamedTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSeqSeqNamedSample" href="#radio.data.datatypes.MutableSeqSeqNamedSample">MutableSeqSeqNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqNamedSample.data" href="#radio.data.datatypes.MutableSeqSeqNamedSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqSeqSample"><code class="flex name class">
+<span>class <span class="ident">MutableSeqSeqSample</span></span>
+<span>(</span><span>data: MutableSeqSeqVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Nested Sequence of Samples Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class MutableSeqSeqSample(Generic[MutableSeqSeqVar]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: MutableSeqSeqVar
+    sample_type: str = field(default=&#34;MutableSeqSample&#34;, init=False)
+
+    def __post_init__(self):
+        self.data = _from_seq(self.sample_type, self.data)
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqSeqImg" href="#radio.data.datatypes.MutableSeqSeqImg">MutableSeqSeqImg</a></li>
+<li><a title="radio.data.datatypes.MutableSeqSeqTensor" href="#radio.data.datatypes.MutableSeqSeqTensor">MutableSeqSeqTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSeqSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSeqSample.data"><code class="name">var <span class="ident">data</span> : ~MutableSeqSeqVar</code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqSeqTensor"><code class="flex name class">
+<span>class <span class="ident">MutableSeqSeqTensor</span></span>
+<span>(</span><span>data: MutableSeqSeqVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Nested Sequence of Tensors Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class MutableSeqSeqTensor(MutableSeqSeqSample[SeqSeq[HybridMutableSeqTensor]]):
+    &#34;&#34;&#34;Mutable Nested Sequence of Tensors Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;MutableSeqTensor&#34;, init=False)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqSeqSample" href="#radio.data.datatypes.MutableSeqSeqSample">MutableSeqSeqSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqSeqTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSeqSeqSample" href="#radio.data.datatypes.MutableSeqSeqSample">MutableSeqSeqSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqSample.data" href="#radio.data.datatypes.MutableSeqSeqSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableSeqTensor"><code class="flex name class">
+<span>class <span class="ident">MutableSeqTensor</span></span>
+<span>(</span><span>data: MutableSeqVar, sample_type: InitVar[str] = 'MutableTensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Sequence of Tensors Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableSeqTensor(MutableSeqSample[Seq[HybridMutableTensor]]):
+    &#34;&#34;&#34;Mutable Sequence of Tensors Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;MutableTensor&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSeqSample" href="#radio.data.datatypes.MutableSeqSample">MutableSeqSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableSeqTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSeqSample" href="#radio.data.datatypes.MutableSeqSample">MutableSeqSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSeqSample.data" href="#radio.data.datatypes.MutableSeqSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.MutableTensor"><code class="flex name class">
+<span>class <span class="ident">MutableTensor</span></span>
+<span>(</span><span>_data: SingletonVar, sample_type: InitVar[str] = 'TorchTensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mutable Tensor Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class MutableTensor(MutableSample[torch.Tensor]):
+    &#34;&#34;&#34;Mutable Tensor Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;TorchTensor&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.MutableSample" href="#radio.data.datatypes.MutableSample">MutableSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.MutableTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.MutableSample" href="#radio.data.datatypes.MutableSample">MutableSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.MutableSample.data" href="#radio.data.datatypes.MutableSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.NamedImg"><code class="flex name class">
+<span>class <span class="ident">NamedImg</span></span>
+<span>(</span><span>name: KeyVar, data: SingletonVar, sample_type: InitVar[str] = 'PILImage')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Named Image Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class NamedImg(NamedSample[str, Image.Image]):
+    &#34;&#34;&#34;Immutable Named Image Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;PILImage&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.NamedSample" href="#radio.data.datatypes.NamedSample">NamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.NamedImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.NamedSample" href="#radio.data.datatypes.NamedSample">NamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.NamedSample.data" href="#radio.data.datatypes.NamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.NamedSample.name" href="#radio.data.datatypes.NamedSample.name">name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.NamedSample"><code class="flex name class">
+<span>class <span class="ident">NamedSample</span></span>
+<span>(</span><span>name: KeyVar, data: SingletonVar, sample_type: InitVar[str] = 'Sample')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Named Sample Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class NamedSample(Generic[KeyVar, SingletonVar]):
+    &#34;&#34;&#34;Immutable Named Sample Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;name&#34;, &#34;data&#34;)
+    #: data given name
+    name: KeyVar
+    data: SingletonVar
+    sample_type: InitVar[str] = &#34;Sample&#34;
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self.data, (NamedSample, MutableNamedSample)):
+            object.__setattr__(self, &#34;data&#34;, self.data.data)
+
+    def __repr__(self):
+        dictstring = f&#34;{{{self.name}: {self.data}}}&#34;
+        return f&#34;radio.{self.__class__.__qualname__}({dictstring})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.NamedImg" href="#radio.data.datatypes.NamedImg">NamedImg</a></li>
+<li><a title="radio.data.datatypes.NamedTensor" href="#radio.data.datatypes.NamedTensor">NamedTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.NamedSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.NamedSample.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+<dt id="radio.data.datatypes.NamedSample.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"><p>data given name</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.NamedTensor"><code class="flex name class">
+<span>class <span class="ident">NamedTensor</span></span>
+<span>(</span><span>name: KeyVar, data: SingletonVar, sample_type: InitVar[str] = 'TorchTensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Named Tensor Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class NamedTensor(NamedSample[str, torch.Tensor]):
+    &#34;&#34;&#34;Immutable Named Tensor Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;TorchTensor&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.NamedSample" href="#radio.data.datatypes.NamedSample">NamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.NamedTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.NamedSample" href="#radio.data.datatypes.NamedSample">NamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.NamedSample.data" href="#radio.data.datatypes.NamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.NamedSample.name" href="#radio.data.datatypes.NamedSample.name">name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.Sample"><code class="flex name class">
+<span>class <span class="ident">Sample</span></span>
+<span>(</span><span>data: SingletonVar, sample_type: InitVar[str] = 'Sample')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Sample Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class Sample(Generic[SingletonVar]):
+    &#34;&#34;&#34;Immutable Sample Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: SingletonVar
+    sample_type: InitVar[str] = &#34;Sample&#34;
+
+    def __post_init__(self, sample_type):
+        del sample_type
+        if isinstance(self.data, SampleType):
+            object.__setattr__(self, &#34;data&#34;, self.data.data)
+
+    def __repr__(self):
+        return f&#34;radio.{self.__class__.__qualname__}({self.data})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.Img" href="#radio.data.datatypes.Img">Img</a></li>
+<li><a title="radio.data.datatypes.Tensor" href="#radio.data.datatypes.Tensor">Tensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.Sample.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.Sample.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.SeqImg"><code class="flex name class">
+<span>class <span class="ident">SeqImg</span></span>
+<span>(</span><span>data: SeqVar, sample_type: InitVar[str] = 'Img')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Sequence of Images Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class SeqImg(SeqSample[Seq[HybridImg]]):
+    &#34;&#34;&#34;Immutable Sequence of Images Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;Img&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqSample" href="#radio.data.datatypes.SeqSample">SeqSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.SeqSample" href="#radio.data.datatypes.SeqSample">SeqSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.SeqSample.data" href="#radio.data.datatypes.SeqSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.SeqNamedImg"><code class="flex name class">
+<span>class <span class="ident">SeqNamedImg</span></span>
+<span>(</span><span>name: KeyVar, data: SeqNamedVar, sample_type: InitVar[str] = 'NamedImg')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Sequence of Named Images Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class SeqNamedImg(SeqNamedSample[str, Seq[HybridNamedImg]]):
+    &#34;&#34;&#34;Immutable Sequence of Named Images Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;NamedImg&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqNamedSample" href="#radio.data.datatypes.SeqNamedSample">SeqNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqNamedImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.SeqNamedSample" href="#radio.data.datatypes.SeqNamedSample">SeqNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.SeqNamedSample.data" href="#radio.data.datatypes.SeqNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.SeqNamedSample.name" href="#radio.data.datatypes.SeqNamedSample.name">name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.SeqNamedSample"><code class="flex name class">
+<span>class <span class="ident">SeqNamedSample</span></span>
+<span>(</span><span>name: KeyVar, data: SeqNamedVar, sample_type: InitVar[str] = 'NamedSample')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Sequence of Named Samples Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class SeqNamedSample(Generic[KeyVar, SeqNamedVar]):
+    &#34;&#34;&#34;Immutable Sequence of Named Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;name&#34;, &#34;data&#34;)
+    name: KeyVar
+    data: SeqNamedVar
+    sample_type: InitVar[str] = &#34;NamedSample&#34;
+
+    def __post_init__(self, sample_type):
+        object.__setattr__(self, &#34;data&#34;,
+                           _from_named_seq(sample_type, self.data))
+
+    def __repr__(self):
+        dictstring = f&#34;{{{self.name}: {self.data}}}&#34;
+        return f&#34;radio.{self.__class__.__qualname__}({dictstring})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqNamedImg" href="#radio.data.datatypes.SeqNamedImg">SeqNamedImg</a></li>
+<li><a title="radio.data.datatypes.SeqNamedTensor" href="#radio.data.datatypes.SeqNamedTensor">SeqNamedTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqNamedSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqNamedSample.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+<dt id="radio.data.datatypes.SeqNamedSample.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.SeqNamedTensor"><code class="flex name class">
+<span>class <span class="ident">SeqNamedTensor</span></span>
+<span>(</span><span>name: KeyVar, data: SeqNamedVar, sample_type: InitVar[str] = 'NamedTensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Sequence of Named Tensors Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class SeqNamedTensor(SeqNamedSample[str, Seq[HybridNamedTensor]]):
+    &#34;&#34;&#34;Immutable Sequence of Named Tensors Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;NamedTensor&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqNamedSample" href="#radio.data.datatypes.SeqNamedSample">SeqNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqNamedTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.SeqNamedSample" href="#radio.data.datatypes.SeqNamedSample">SeqNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.SeqNamedSample.data" href="#radio.data.datatypes.SeqNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.SeqNamedSample.name" href="#radio.data.datatypes.SeqNamedSample.name">name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.SeqSample"><code class="flex name class">
+<span>class <span class="ident">SeqSample</span></span>
+<span>(</span><span>data: SeqVar, sample_type: InitVar[str] = 'Sample')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Sequence of Samples Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class SeqSample(Generic[SeqVar]):
+    &#34;&#34;&#34;Immutable Sequence of Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: SeqVar
+    sample_type: InitVar[str] = &#34;Sample&#34;
+
+    def __post_init__(self, sample_type):
+        object.__setattr__(self, &#34;data&#34;, _from_samples(sample_type, self.data))
+
+    def __repr__(self):
+        return f&#34;radio.{self.__class__.__qualname__}({self.data})&#34;
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqImg" href="#radio.data.datatypes.SeqImg">SeqImg</a></li>
+<li><a title="radio.data.datatypes.SeqTensor" href="#radio.data.datatypes.SeqTensor">SeqTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSample.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.SeqSeqImg"><code class="flex name class">
+<span>class <span class="ident">SeqSeqImg</span></span>
+<span>(</span><span>data: SeqSeqVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Nested Sequence of Images Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class SeqSeqImg(SeqSeqSample[SeqSeq[HybridSeqImg]]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Images Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;SeqImg&#34;, init=False)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqSeqSample" href="#radio.data.datatypes.SeqSeqSample">SeqSeqSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSeqImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.SeqSeqSample" href="#radio.data.datatypes.SeqSeqSample">SeqSeqSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.SeqSeqSample.data" href="#radio.data.datatypes.SeqSeqSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.SeqSeqNamedImg"><code class="flex name class">
+<span>class <span class="ident">SeqSeqNamedImg</span></span>
+<span>(</span><span>data: SeqSeqNamedVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Nested Sequence of Named Images Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class SeqSeqNamedImg(SeqSeqNamedSample[SeqSeq[HybridNamedSeqImg]]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Named Images Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;SeqNamedImg&#34;, init=False)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqSeqNamedSample" href="#radio.data.datatypes.SeqSeqNamedSample">SeqSeqNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSeqNamedImg.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.SeqSeqNamedSample" href="#radio.data.datatypes.SeqSeqNamedSample">SeqSeqNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.SeqSeqNamedSample.data" href="#radio.data.datatypes.SeqSeqNamedSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.SeqSeqNamedSample"><code class="flex name class">
+<span>class <span class="ident">SeqSeqNamedSample</span></span>
+<span>(</span><span>data: SeqSeqNamedVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Nested Sequence of Named Samples Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class SeqSeqNamedSample(Generic[SeqSeqNamedVar]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Named Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    sample_type: str = field(default=&#34;SeqNamedSample&#34;, init=False)
+    data: SeqSeqNamedVar
+
+    def __post_init__(self):
+        self.data = _from_named_seq(self.sample_type, self.data)
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqSeqNamedImg" href="#radio.data.datatypes.SeqSeqNamedImg">SeqSeqNamedImg</a></li>
+<li><a title="radio.data.datatypes.SeqSeqNamedTensor" href="#radio.data.datatypes.SeqSeqNamedTensor">SeqSeqNamedTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSeqNamedSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSeqNamedSample.data"><code class="name">var <span class="ident">data</span> : ~SeqSeqNamedVar</code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.SeqSeqNamedTensor"><code class="flex name class">
+<span>class <span class="ident">SeqSeqNamedTensor</span></span>
+<span>(</span><span>data: SeqSeqNamedVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Nested Sequence of Named Tensors Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class SeqSeqNamedTensor(SeqSeqNamedSample[SeqSeq[HybridNamedSeqTensor]]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Named Tensors Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;SeqNamedTensor&#34;, init=False)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqSeqNamedSample" href="#radio.data.datatypes.SeqSeqNamedSample">SeqSeqNamedSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSeqNamedTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.SeqSeqNamedSample" href="#radio.data.datatypes.SeqSeqNamedSample">SeqSeqNamedSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.SeqSeqNamedSample.data" href="#radio.data.datatypes.SeqSeqNamedSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.SeqSeqSample"><code class="flex name class">
+<span>class <span class="ident">SeqSeqSample</span></span>
+<span>(</span><span>data: SeqSeqVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Nested Sequence of Samples Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class SeqSeqSample(Generic[SeqSeqVar]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Samples Type.&#34;&#34;&#34;
+
+    #: This stores the data like a tuple
+    __slots__ = (&#34;data&#34;, )
+    data: SeqSeqVar
+    sample_type: str = field(default=&#34;SeqSample&#34;, init=False)
+
+    def __post_init__(self):
+        self.data = _from_seq(self.sample_type, self.data)
+
+    def __iter__(self):
+        &#34;&#34;&#34;Unpack like a tuple.&#34;&#34;&#34;
+        yield from astuple(self)
+
+    def __len__(self):
+        return len(self.data)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqSeqImg" href="#radio.data.datatypes.SeqSeqImg">SeqSeqImg</a></li>
+<li><a title="radio.data.datatypes.SeqSeqTensor" href="#radio.data.datatypes.SeqSeqTensor">SeqSeqTensor</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSeqSample.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSeqSample.data"><code class="name">var <span class="ident">data</span> : ~SeqSeqVar</code></dt>
+<dd>
+<div class="desc"><p>Return an attribute of instance, which is of type owner.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radio.data.datatypes.SeqSeqTensor"><code class="flex name class">
+<span>class <span class="ident">SeqSeqTensor</span></span>
+<span>(</span><span>data: SeqSeqVar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Nested Sequence of Tensors Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class SeqSeqTensor(SeqSeqSample[SeqSeq[HybridSeqTensor]]):
+    &#34;&#34;&#34;Immutable Nested Sequence of Tensors Type.&#34;&#34;&#34;
+
+    sample_type: str = field(default=&#34;SeqTensor&#34;, init=False)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqSeqSample" href="#radio.data.datatypes.SeqSeqSample">SeqSeqSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqSeqTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.SeqSeqSample" href="#radio.data.datatypes.SeqSeqSample">SeqSeqSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.SeqSeqSample.data" href="#radio.data.datatypes.SeqSeqSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.SeqTensor"><code class="flex name class">
+<span>class <span class="ident">SeqTensor</span></span>
+<span>(</span><span>data: SeqVar, sample_type: InitVar[str] = 'Tensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Sequence of Tensors Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class SeqTensor(SeqSample[Seq[HybridTensor]]):
+    &#34;&#34;&#34;Immutable Sequence of Tensors Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;Tensor&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.SeqSample" href="#radio.data.datatypes.SeqSample">SeqSample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.SeqTensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.SeqSample" href="#radio.data.datatypes.SeqSample">SeqSample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.SeqSample.data" href="#radio.data.datatypes.SeqSample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="radio.data.datatypes.Tensor"><code class="flex name class">
+<span>class <span class="ident">Tensor</span></span>
+<span>(</span><span>data: SingletonVar, sample_type: InitVar[str] = 'TorchTensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Immutable Tensor Type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True, repr=False)
+class Tensor(Sample[torch.Tensor]):
+    &#34;&#34;&#34;Immutable Tensor Type.&#34;&#34;&#34;
+
+    sample_type: InitVar[str] = &#34;TorchTensor&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radio.data.datatypes.Sample" href="#radio.data.datatypes.Sample">Sample</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radio.data.datatypes.Tensor.sample_type"><code class="name">var <span class="ident">sample_type</span> : InitVar[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="radio.data.datatypes.Sample" href="#radio.data.datatypes.Sample">Sample</a></b></code>:
+<ul class="hlist">
+<li><code><a title="radio.data.datatypes.Sample.data" href="#radio.data.datatypes.Sample.data">data</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="radio.data" href="index.html">radio.data</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="radio.data.datatypes.get_sample_type" href="#radio.data.datatypes.get_sample_type">get_sample_type</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="radio.data.datatypes.Img" href="#radio.data.datatypes.Img">Img</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.Img.sample_type" href="#radio.data.datatypes.Img.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableImg" href="#radio.data.datatypes.MutableImg">MutableImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableImg.sample_type" href="#radio.data.datatypes.MutableImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableNamedImg" href="#radio.data.datatypes.MutableNamedImg">MutableNamedImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableNamedImg.sample_type" href="#radio.data.datatypes.MutableNamedImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableNamedSample" href="#radio.data.datatypes.MutableNamedSample">MutableNamedSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableNamedSample.data" href="#radio.data.datatypes.MutableNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableNamedSample.name" href="#radio.data.datatypes.MutableNamedSample.name">name</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableNamedSample.sample_type" href="#radio.data.datatypes.MutableNamedSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableNamedTensor" href="#radio.data.datatypes.MutableNamedTensor">MutableNamedTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableNamedTensor.sample_type" href="#radio.data.datatypes.MutableNamedTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSample" href="#radio.data.datatypes.MutableSample">MutableSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSample.data" href="#radio.data.datatypes.MutableSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableSample.sample_type" href="#radio.data.datatypes.MutableSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqImg" href="#radio.data.datatypes.MutableSeqImg">MutableSeqImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqImg.sample_type" href="#radio.data.datatypes.MutableSeqImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqNamedImg" href="#radio.data.datatypes.MutableSeqNamedImg">MutableSeqNamedImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqNamedImg.sample_type" href="#radio.data.datatypes.MutableSeqNamedImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqNamedSample" href="#radio.data.datatypes.MutableSeqNamedSample">MutableSeqNamedSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqNamedSample.data" href="#radio.data.datatypes.MutableSeqNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableSeqNamedSample.name" href="#radio.data.datatypes.MutableSeqNamedSample.name">name</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableSeqNamedSample.sample_type" href="#radio.data.datatypes.MutableSeqNamedSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqNamedTensor" href="#radio.data.datatypes.MutableSeqNamedTensor">MutableSeqNamedTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqNamedTensor.sample_type" href="#radio.data.datatypes.MutableSeqNamedTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqSample" href="#radio.data.datatypes.MutableSeqSample">MutableSeqSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqSample.data" href="#radio.data.datatypes.MutableSeqSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableSeqSample.sample_type" href="#radio.data.datatypes.MutableSeqSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqSeqImg" href="#radio.data.datatypes.MutableSeqSeqImg">MutableSeqSeqImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqImg.sample_type" href="#radio.data.datatypes.MutableSeqSeqImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqSeqNamedImg" href="#radio.data.datatypes.MutableSeqSeqNamedImg">MutableSeqSeqNamedImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqNamedImg.sample_type" href="#radio.data.datatypes.MutableSeqSeqNamedImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqSeqNamedSample" href="#radio.data.datatypes.MutableSeqSeqNamedSample">MutableSeqSeqNamedSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqNamedSample.data" href="#radio.data.datatypes.MutableSeqSeqNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableSeqSeqNamedSample.sample_type" href="#radio.data.datatypes.MutableSeqSeqNamedSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqSeqNamedTensor" href="#radio.data.datatypes.MutableSeqSeqNamedTensor">MutableSeqSeqNamedTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqNamedTensor.sample_type" href="#radio.data.datatypes.MutableSeqSeqNamedTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqSeqSample" href="#radio.data.datatypes.MutableSeqSeqSample">MutableSeqSeqSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqSample.data" href="#radio.data.datatypes.MutableSeqSeqSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.MutableSeqSeqSample.sample_type" href="#radio.data.datatypes.MutableSeqSeqSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqSeqTensor" href="#radio.data.datatypes.MutableSeqSeqTensor">MutableSeqSeqTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqSeqTensor.sample_type" href="#radio.data.datatypes.MutableSeqSeqTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableSeqTensor" href="#radio.data.datatypes.MutableSeqTensor">MutableSeqTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableSeqTensor.sample_type" href="#radio.data.datatypes.MutableSeqTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.MutableTensor" href="#radio.data.datatypes.MutableTensor">MutableTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.MutableTensor.sample_type" href="#radio.data.datatypes.MutableTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.NamedImg" href="#radio.data.datatypes.NamedImg">NamedImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.NamedImg.sample_type" href="#radio.data.datatypes.NamedImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.NamedSample" href="#radio.data.datatypes.NamedSample">NamedSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.NamedSample.data" href="#radio.data.datatypes.NamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.NamedSample.name" href="#radio.data.datatypes.NamedSample.name">name</a></code></li>
+<li><code><a title="radio.data.datatypes.NamedSample.sample_type" href="#radio.data.datatypes.NamedSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.NamedTensor" href="#radio.data.datatypes.NamedTensor">NamedTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.NamedTensor.sample_type" href="#radio.data.datatypes.NamedTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.Sample" href="#radio.data.datatypes.Sample">Sample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.Sample.data" href="#radio.data.datatypes.Sample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.Sample.sample_type" href="#radio.data.datatypes.Sample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqImg" href="#radio.data.datatypes.SeqImg">SeqImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqImg.sample_type" href="#radio.data.datatypes.SeqImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqNamedImg" href="#radio.data.datatypes.SeqNamedImg">SeqNamedImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqNamedImg.sample_type" href="#radio.data.datatypes.SeqNamedImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqNamedSample" href="#radio.data.datatypes.SeqNamedSample">SeqNamedSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqNamedSample.data" href="#radio.data.datatypes.SeqNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.SeqNamedSample.name" href="#radio.data.datatypes.SeqNamedSample.name">name</a></code></li>
+<li><code><a title="radio.data.datatypes.SeqNamedSample.sample_type" href="#radio.data.datatypes.SeqNamedSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqNamedTensor" href="#radio.data.datatypes.SeqNamedTensor">SeqNamedTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqNamedTensor.sample_type" href="#radio.data.datatypes.SeqNamedTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqSample" href="#radio.data.datatypes.SeqSample">SeqSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqSample.data" href="#radio.data.datatypes.SeqSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.SeqSample.sample_type" href="#radio.data.datatypes.SeqSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqSeqImg" href="#radio.data.datatypes.SeqSeqImg">SeqSeqImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqSeqImg.sample_type" href="#radio.data.datatypes.SeqSeqImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqSeqNamedImg" href="#radio.data.datatypes.SeqSeqNamedImg">SeqSeqNamedImg</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqSeqNamedImg.sample_type" href="#radio.data.datatypes.SeqSeqNamedImg.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqSeqNamedSample" href="#radio.data.datatypes.SeqSeqNamedSample">SeqSeqNamedSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqSeqNamedSample.data" href="#radio.data.datatypes.SeqSeqNamedSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.SeqSeqNamedSample.sample_type" href="#radio.data.datatypes.SeqSeqNamedSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqSeqNamedTensor" href="#radio.data.datatypes.SeqSeqNamedTensor">SeqSeqNamedTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqSeqNamedTensor.sample_type" href="#radio.data.datatypes.SeqSeqNamedTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqSeqSample" href="#radio.data.datatypes.SeqSeqSample">SeqSeqSample</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqSeqSample.data" href="#radio.data.datatypes.SeqSeqSample.data">data</a></code></li>
+<li><code><a title="radio.data.datatypes.SeqSeqSample.sample_type" href="#radio.data.datatypes.SeqSeqSample.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqSeqTensor" href="#radio.data.datatypes.SeqSeqTensor">SeqSeqTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqSeqTensor.sample_type" href="#radio.data.datatypes.SeqSeqTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.SeqTensor" href="#radio.data.datatypes.SeqTensor">SeqTensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.SeqTensor.sample_type" href="#radio.data.datatypes.SeqTensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radio.data.datatypes.Tensor" href="#radio.data.datatypes.Tensor">Tensor</a></code></h4>
+<ul class="">
+<li><code><a title="radio.data.datatypes.Tensor.sample_type" href="#radio.data.datatypes.Tensor.sample_type">sample_type</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

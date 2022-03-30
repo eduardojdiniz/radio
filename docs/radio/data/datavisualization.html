@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>radio.data.datavisualization API documentation</title>
+<meta name="description" content="Data related utilities." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>radio.data.datavisualization</code></h1>
+</header>
+<section id="section-intro">
+<p>Data related utilities.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python
+# coding=utf-8
+&#34;&#34;&#34;
+Data related utilities.
+&#34;&#34;&#34;
+
+from typing import Dict, List, Optional, Any
+import random
+import numpy as np
+import torchio as tio
+from torchio.data.subject import Subject
+from torchio.data.image import Image, LabelMap
+from torchio.transforms.preprocessing.spatial.to_canonical import ToCanonical
+from .datautils import get_subjects_from_batch
+
+__all__ = [&#34;plot_batch&#34;, &#34;plot_subjects&#34;, &#34;plot_dataset&#34;]
+
+
+def import_mpl_plt():
+    try:
+        import matplotlib as mpl  # type: ignore
+        import matplotlib.pyplot as plt  # type: ignore
+    except ImportError as error:
+        raise ImportError(&#39;Install matplotlib for plotting support&#39;) from error
+    plt.rcParams[&#34;savefig.bbox&#34;] = &#34;tight&#34;
+    return mpl, plt
+
+
+def rotate(image, radiological=True, n=-1):
+    # Rotate for visualization purposes
+    image = np.rot90(image, n)
+    if radiological:
+        image = np.fliplr(image)
+    return image
+
+
+def color_labels(arrays, cmap_dict):
+    results = []
+    for array in arrays:
+        shape_i, shape_j = array.shape
+        rgb = np.zeros((shape_i, shape_j, 3), dtype=np.uint8)
+        for label, color in cmap_dict.items():
+            if isinstance(color, str):
+                mpl, _ = import_mpl_plt()
+                color = mpl.colors.to_rgb(color)
+                color = [255 * n for n in color]
+            rgb[array == label] = color
+        results.append(rgb)
+    return results
+
+
+def plot_subjects(
+    subjects: List[Subject],
+    num_samples: int = 5,
+    random_samples: bool = True,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -&gt; None:
+    &#34;&#34;&#34;plot images and labels from a batch of images&#34;&#34;&#34;
+    # Create subjects dataset from list of subjects
+    num_subjects = len(subjects)
+    if random_samples:
+        samples_idx = random.sample(
+            range(0, num_subjects),
+            min(num_samples, num_subjects),
+        )
+    else:
+        samples_idx = list(range(0, min(num_samples, num_subjects)))
+
+    dataset = tio.SubjectsDataset(subjects)
+    # Keep only samples_idx subjects in the dataset
+    dataset._subjects = [
+        subject for idx, subject in enumerate(dataset._subjects)
+        if idx in samples_idx
+    ]
+
+    plot_dataset(dataset,
+                 intensities=intensities,
+                 labels=labels,
+                 exclude_keys=exclude_keys)
+
+
+def plot_batch(
+    batch: Dict[str, Any],
+    num_samples: int = 5,
+    random_samples: bool = True,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -&gt; None:
+    &#34;&#34;&#34;plot images and labels from a batch of images&#34;&#34;&#34;
+    # Create subjects dataset from batch
+    batch_size = len(batch)
+    if random_samples:
+        samples_idx = random.sample(
+            range(0, batch_size),
+            min(num_samples, batch_size),
+        )
+    else:
+        samples_idx = list(range(0, min(num_samples, batch_size)))
+
+    subjects = get_subjects_from_batch(batch)
+    dataset = tio.SubjectsDataset(subjects)
+
+    # Keep only samples_idx subjects in the dataset
+    dataset._subjects = [
+        subject for idx, subject in enumerate(dataset._subjects)
+        if idx in samples_idx
+    ]
+    plot_dataset(dataset,
+                 intensities=intensities,
+                 labels=labels,
+                 exclude_keys=exclude_keys)
+
+
+def plot_dataset(
+    dataset: tio.SubjectsDataset,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -&gt; None:
+    &#34;&#34;&#34;plot images and labels from a dataset of subjects&#34;&#34;&#34;
+
+    # Parse intensities, labels and exclude_keys
+    exclude_keys = exclude_keys if exclude_keys else []
+    # # Assumes all subjects hold the same tio.IMAGE&#39;s
+    intensities_in_subj = list(
+        dataset[0].get_images_dict(intensity_only=True).keys())
+    labels_in_subj = list(dataset[0].get_images_dict(
+        intensity_only=False, exclude=intensities_in_subj).keys())
+    intensities_in_subj = [
+        intensity for intensity in intensities_in_subj
+        if intensity not in exclude_keys
+    ]
+    labels_in_subj = [
+        label for label in labels_in_subj if label not in exclude_keys
+    ]
+    intensities = intensities if intensities else intensities_in_subj
+    labels = labels if labels else labels_in_subj
+
+    # Filter images from dataset
+    for _, subject in enumerate(dataset):
+        for image_name in subject.get_images_names():
+            if image_name not in intensities or image_name not in labels:
+                subject.remove_image(image_name)
+
+    # Plot subjects
+    for row_idx, subject in enumerate(dataset):
+        print(f&#34;Subject: {row_idx + 1}&#34;)
+        plot_subject(subject)
+        print(&#34;\n&#34;)
+
+
+def plot_subject(
+    subject: Subject,
+    cmap_dict=None,
+    show=True,
+    output_path=None,
+    figsize=None,
+    clear_axes=True,
+    **kwargs,
+):
+    _, plt = import_mpl_plt()
+    num_images = len(subject)
+    many_images = num_images &gt; 2
+    subplots_kwargs = {&#39;figsize&#39;: figsize}
+    try:
+        if clear_axes:
+            subject.check_consistent_spatial_shape()
+            subplots_kwargs[&#39;sharex&#39;] = &#39;row&#39; if many_images else &#39;col&#39;
+            subplots_kwargs[&#39;sharey&#39;] = &#39;row&#39; if many_images else &#39;col&#39;
+    except RuntimeError:  # different shapes in subject
+        pass
+
+    if subject.is_2d():
+        args = (1, num_images) if many_images else (num_images, 1)
+        fig, axes = plt.subplots(*args, **subplots_kwargs)
+        # The array of axes must be 2D so that it can be indexed correctly
+        # within the plot_slice() function
+        axes = axes.T if many_images else axes.reshape(-1, 1)
+    else:
+        args = (3, num_images) if many_images else (num_images, 3)
+        fig, axes = plt.subplots(*args, **subplots_kwargs)
+        # The array of axes must be 2D so that it can be indexed correctly
+        # within the plot_volume() function
+        axes = axes.T if many_images else axes.reshape(-1, 3)
+        axes_names = (&#39;sagittal&#39;, &#39;coronal&#39;, &#39;axial&#39;)
+
+    iterable = enumerate(subject.get_images_dict(intensity_only=False).items())
+    for image_index, (name, image) in iterable:
+        image_axes = axes[image_index]
+        cmap = None
+        if cmap_dict is not None and name in cmap_dict:
+            cmap = cmap_dict[name]
+        last_row = image_index == len(axes) - 1
+        if subject.is_2d():
+            axis_name = plot_slice(
+                image,
+                axes=image_axes,
+                show=False,
+                cmap=cmap,
+                xlabels=last_row,
+                **kwargs,
+            )
+            for axis, axis_name in zip(image_axes, axis_name):
+                axis.set_title(f&#39;{name} ({axis_name})&#39;)
+        else:
+            plot_volume(
+                image,
+                axes=image_axes,
+                show=False,
+                cmap=cmap,
+                xlabels=last_row,
+                **kwargs,
+            )
+            for axis, axis_name in zip(image_axes, axes_names):
+                axis.set_title(f&#39;{name} ({axis_name})&#39;)
+    plt.tight_layout()
+    if output_path is not None:
+        fig.savefig(output_path)
+    if show:
+        plt.show()
+
+
+def plot_volume(
+        image: Image,
+        radiological=True,
+        channel=-1,  # default to foreground for binary maps
+        axes=None,
+        cmap=None,
+        output_path=None,
+        show=True,
+        xlabels=True,
+        percentiles=(0.5, 99.5),
+        figsize=None,
+        reorient=True,
+        indices=None,
+):
+    _, plt = import_mpl_plt()
+    fig = None
+    if axes is None:
+        fig, axes = plt.subplots(1, 3, figsize=figsize)
+    sag_axis, cor_axis, axi_axis = axes
+
+    if reorient:
+        image = ToCanonical()(image)
+    data = image.data[channel]
+    if indices is None:
+        indices = np.array(data.shape) // 2
+    i, j, k = indices
+    slice_x = rotate(data[i, :, :], radiological=radiological)
+    slice_y = rotate(data[:, j, :], radiological=radiological)
+    slice_z = rotate(data[:, :, k], radiological=radiological)
+    kwargs = {}
+    is_label = isinstance(image, LabelMap)
+    if isinstance(cmap, dict):
+        slices = slice_x, slice_y, slice_z
+        slice_x, slice_y, slice_z = color_labels(slices, cmap)
+    else:
+        if cmap is None:
+            cmap = &#39;cubehelix&#39; if is_label else &#39;gray&#39;
+        kwargs[&#39;cmap&#39;] = cmap
+    if is_label:
+        kwargs[&#39;interpolation&#39;] = &#39;none&#39;
+
+    spacing_r, spacing_a, spacing_s = image.spacing
+    kwargs[&#39;origin&#39;] = &#39;lower&#39;
+
+    if percentiles is not None and not is_label:
+        percentile_1, percentile_2 = np.percentile(data, percentiles)
+        kwargs[&#39;vmin&#39;] = percentile_1
+        kwargs[&#39;vmax&#39;] = percentile_2
+
+    sag_aspect = spacing_s / spacing_a
+    sag_axis.imshow(slice_x, aspect=sag_aspect, **kwargs)
+    if xlabels:
+        sag_axis.set_xlabel(&#39;A&#39;)
+    sag_axis.set_ylabel(&#39;S&#39;)
+    sag_axis.invert_xaxis()
+    sag_axis.set_title(&#39;Sagittal&#39;)
+
+    cor_aspect = spacing_s / spacing_r
+    cor_axis.imshow(slice_y, aspect=cor_aspect, **kwargs)
+    if xlabels:
+        cor_axis.set_xlabel(&#39;R&#39;)
+    cor_axis.set_ylabel(&#39;S&#39;)
+    cor_axis.invert_xaxis()
+    cor_axis.set_title(&#39;Coronal&#39;)
+
+    axi_aspect = spacing_a / spacing_r
+    axi_axis.imshow(slice_z, aspect=axi_aspect, **kwargs)
+    if xlabels:
+        axi_axis.set_xlabel(&#39;R&#39;)
+    axi_axis.set_ylabel(&#39;A&#39;)
+    axi_axis.invert_xaxis()
+    axi_axis.set_title(&#39;Axial&#39;)
+
+    plt.tight_layout()
+    if output_path is not None and fig is not None:
+        fig.savefig(output_path)
+    if show:
+        plt.show()
+
+
+def plot_slice(
+        image: Image,
+        radiological=True,
+        channel=-1,  # default to foreground for binary maps
+        axes=None,
+        cmap=None,
+        output_path=None,
+        show=True,
+        xlabels=True,
+        percentiles=(0.5, 99.5),
+        figsize=None,
+        reorient=True,
+) -&gt; str:
+    _, plt = import_mpl_plt()
+    fig = None
+    if axes is None:
+        fig, axes = plt.subplots(1, 1, figsize=figsize)
+    axis = axes[0]
+    if reorient:
+        image = ToCanonical()(image)
+    data = image.data[channel]
+
+    for idx, dim in enumerate(data.shape):
+        if dim == 1:
+            empty_dim = idx
+    spacing_r, spacing_a, spacing_s = image.spacing
+
+    if empty_dim == 0:
+        img_slice = rotate(data[0, :, :], radiological=radiological)
+        axis_aspect = spacing_s / spacing_a
+        x_label = &#39;A&#39;
+        y_label = &#39;S&#39;
+        title = &#39;Sagittal&#39;
+    elif empty_dim == 1:
+        img_slice = rotate(data[:, 0, :], radiological=radiological)
+        axis_aspect = spacing_s / spacing_r
+        x_label = &#39;R&#39;
+        y_label = &#39;S&#39;
+        title = &#39;Coronal&#39;
+    else:
+        img_slice = rotate(data[:, :, 0], radiological=radiological)
+        axis_aspect = spacing_a / spacing_r
+        x_label = &#39;R&#39;
+        y_label = &#39;A&#39;
+        title = &#39;Axial&#39;
+
+    kwargs = {}
+    is_label = isinstance(image, LabelMap)
+    if isinstance(cmap, dict):
+        img_slice = color_labels(img_slice, cmap)
+    else:
+        if cmap is None:
+            cmap = &#39;cubehelix&#39; if is_label else &#39;gray&#39;
+        kwargs[&#39;cmap&#39;] = cmap
+    if is_label:
+        kwargs[&#39;interpolation&#39;] = &#39;none&#39;
+
+    kwargs[&#39;origin&#39;] = &#39;lower&#39;
+
+    if percentiles is not None and not is_label:
+        percentile_1, percentile_2 = np.percentile(data, percentiles)
+        kwargs[&#39;vmin&#39;] = percentile_1
+        kwargs[&#39;vmax&#39;] = percentile_2
+
+    axis.imshow(img_slice, aspect=axis_aspect, **kwargs)
+    if xlabels:
+        axis.set_xlabel(x_label)
+    axis.set_ylabel(y_label)
+    axis.invert_xaxis()
+    axis.set_title(title)
+
+    plt.tight_layout()
+    if output_path is not None and fig is not None:
+        fig.savefig(output_path)
+    if show:
+        plt.show()
+
+    return title</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="radio.data.datavisualization.plot_batch"><code class="name flex">
+<span>def <span class="ident">plot_batch</span></span>(<span>batch: Dict[str, Any], num_samples: int = 5, random_samples: bool = True, intensities: Optional[List[str]] = None, labels: Optional[List[str]] = None, exclude_keys: Optional[List[str]] = None) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>plot images and labels from a batch of images</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_batch(
+    batch: Dict[str, Any],
+    num_samples: int = 5,
+    random_samples: bool = True,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -&gt; None:
+    &#34;&#34;&#34;plot images and labels from a batch of images&#34;&#34;&#34;
+    # Create subjects dataset from batch
+    batch_size = len(batch)
+    if random_samples:
+        samples_idx = random.sample(
+            range(0, batch_size),
+            min(num_samples, batch_size),
+        )
+    else:
+        samples_idx = list(range(0, min(num_samples, batch_size)))
+
+    subjects = get_subjects_from_batch(batch)
+    dataset = tio.SubjectsDataset(subjects)
+
+    # Keep only samples_idx subjects in the dataset
+    dataset._subjects = [
+        subject for idx, subject in enumerate(dataset._subjects)
+        if idx in samples_idx
+    ]
+    plot_dataset(dataset,
+                 intensities=intensities,
+                 labels=labels,
+                 exclude_keys=exclude_keys)</code></pre>
+</details>
+</dd>
+<dt id="radio.data.datavisualization.plot_dataset"><code class="name flex">
+<span>def <span class="ident">plot_dataset</span></span>(<span>dataset: torchio.data.dataset.SubjectsDataset, intensities: Optional[List[str]] = None, labels: Optional[List[str]] = None, exclude_keys: Optional[List[str]] = None) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>plot images and labels from a dataset of subjects</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_dataset(
+    dataset: tio.SubjectsDataset,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -&gt; None:
+    &#34;&#34;&#34;plot images and labels from a dataset of subjects&#34;&#34;&#34;
+
+    # Parse intensities, labels and exclude_keys
+    exclude_keys = exclude_keys if exclude_keys else []
+    # # Assumes all subjects hold the same tio.IMAGE&#39;s
+    intensities_in_subj = list(
+        dataset[0].get_images_dict(intensity_only=True).keys())
+    labels_in_subj = list(dataset[0].get_images_dict(
+        intensity_only=False, exclude=intensities_in_subj).keys())
+    intensities_in_subj = [
+        intensity for intensity in intensities_in_subj
+        if intensity not in exclude_keys
+    ]
+    labels_in_subj = [
+        label for label in labels_in_subj if label not in exclude_keys
+    ]
+    intensities = intensities if intensities else intensities_in_subj
+    labels = labels if labels else labels_in_subj
+
+    # Filter images from dataset
+    for _, subject in enumerate(dataset):
+        for image_name in subject.get_images_names():
+            if image_name not in intensities or image_name not in labels:
+                subject.remove_image(image_name)
+
+    # Plot subjects
+    for row_idx, subject in enumerate(dataset):
+        print(f&#34;Subject: {row_idx + 1}&#34;)
+        plot_subject(subject)
+        print(&#34;\n&#34;)</code></pre>
+</details>
+</dd>
+<dt id="radio.data.datavisualization.plot_subjects"><code class="name flex">
+<span>def <span class="ident">plot_subjects</span></span>(<span>subjects: List[torchio.data.subject.Subject], num_samples: int = 5, random_samples: bool = True, intensities: Optional[List[str]] = None, labels: Optional[List[str]] = None, exclude_keys: Optional[List[str]] = None) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>plot images and labels from a batch of images</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_subjects(
+    subjects: List[Subject],
+    num_samples: int = 5,
+    random_samples: bool = True,
+    intensities: Optional[List[str]] = None,
+    labels: Optional[List[str]] = None,
+    exclude_keys: Optional[List[str]] = None,
+) -&gt; None:
+    &#34;&#34;&#34;plot images and labels from a batch of images&#34;&#34;&#34;
+    # Create subjects dataset from list of subjects
+    num_subjects = len(subjects)
+    if random_samples:
+        samples_idx = random.sample(
+            range(0, num_subjects),
+            min(num_samples, num_subjects),
+        )
+    else:
+        samples_idx = list(range(0, min(num_samples, num_subjects)))
+
+    dataset = tio.SubjectsDataset(subjects)
+    # Keep only samples_idx subjects in the dataset
+    dataset._subjects = [
+        subject for idx, subject in enumerate(dataset._subjects)
+        if idx in samples_idx
+    ]
+
+    plot_dataset(dataset,
+                 intensities=intensities,
+                 labels=labels,
+                 exclude_keys=exclude_keys)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="radio.data" href="index.html">radio.data</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="radio.data.datavisualization.plot_batch" href="#radio.data.datavisualization.plot_batch">plot_batch</a></code></li>
+<li><code><a title="radio.data.datavisualization.plot_dataset" href="#radio.data.datavisualization.plot_dataset">plot_dataset</a></code></li>
+<li><code><a title="radio.data.datavisualization.plot_subjects" href="#radio.data.datavisualization.plot_subjects">plot_subjects</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
