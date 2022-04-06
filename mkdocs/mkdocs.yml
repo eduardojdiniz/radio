@@ -1,0 +1,30 @@
+site_name: RadIO - Radiology IO
+site_description: Pytorch Lighting Data Modules for Radiology
+docs_dir: docs
+repo_url: https://github.com/eduardojdiniz/radio
+edit_uri: edit/main/docs/docs
+copyright: Project maintained by the folks at <a target=_blanks href="https://gpn.pitt.edu/">GPN</a>.
+theme:
+    name: material
+    logo: favicon-32x32.png
+    favicon: favicon.ico
+    palette:
+        primary: 'deep-blue'
+        accent: 'deep-orange'
+extra_css:
+  - css/extra.css
+nav:
+  - Home: index.md
+  - API Documentation: api.md
+
+plugins:
+  - redirects:
+      redirect_maps:
+          'api.md': 'https://eduardojdiniz.github.io/radio-docs/'
+
+markdown_extensions:
+    - pymdownx.arithmatex:
+        generic: true
+extra_javascript:
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
