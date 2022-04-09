@@ -36,8 +36,7 @@ __all__ = [
 ]
 
 
-def get_first_batch(loader: Iterable,
-                    default: Optional[Var] = None) -> Optional[Var]:
+def get_first_batch(loader: Iterable, default: Optional[Var] = None) -> Optional[Var]:
     """
     Returns the first item in the given iterable or `default` if empty,
     meaningful mostly with 'for' expressions.
@@ -70,32 +69,27 @@ def plot_batch(
     """plot images and labels from a batch of images"""
     # Create subjects dataset from batch
     batch_size = len(batch)
-    samples_idx = random.sample(
-        range(0, batch_size),
-        min(num_samples, batch_size),
-    )
+    samples_idx = random.sample(range(0, batch_size), min(num_samples, batch_size),)
     dataset = tio.SubjectsDataset.from_batch(batch)
 
     # Keep only samples_idx subjects in the dataset
     dataset._subjects = [
-        subject for idx, subject in enumerate(dataset._subjects)
-        if idx in samples_idx
+        subject for idx, subject in enumerate(dataset._subjects) if idx in samples_idx
     ]
 
     # Parse intensities, labels and exclude_keys
     exclude_keys = exclude_keys if exclude_keys else []
     # # Assumes all subjects hold the same tio.IMAGE's
-    intensities_in_subj = list(
-        dataset[0].get_images_dict(intensity_only=True).keys())
-    labels_in_subj = list(dataset[0].get_images_dict(
-        intensity_only=False, exclude=intensities_in_subj).keys())
+    intensities_in_subj = list(dataset[0].get_images_dict(intensity_only=True).keys())
+    labels_in_subj = list(
+        dataset[0]
+        .get_images_dict(intensity_only=False, exclude=intensities_in_subj)
+        .keys()
+    )
     intensities_in_subj = [
-        intensity for intensity in intensities_in_subj
-        if intensity not in exclude_keys
+        intensity for intensity in intensities_in_subj if intensity not in exclude_keys
     ]
-    labels_in_subj = [
-        label for label in labels_in_subj if label not in exclude_keys
-    ]
+    labels_in_subj = [label for label in labels_in_subj if label not in exclude_keys]
     intensities = intensities if intensities else intensities_in_subj
     labels = labels if labels else labels_in_subj
 
@@ -123,13 +117,13 @@ def get_batch_images_and_size(batch: Dict) -> Tuple[List[str], int]:
     """
     names = []
     for image_name, image_dict in batch.items():
-        if isinstance(
-                image_dict, Mapping
-        ) and constants.DATA in image_dict:  # assume it is a TorchIO Image
+        if (
+            isinstance(image_dict, Mapping) and constants.DATA in image_dict
+        ):  # assume it is a TorchIO Image
             size = len(image_dict[constants.DATA])
             names.append(image_name)
     if not names:
-        raise RuntimeError('The batch does not seem to contain any images')
+        raise RuntimeError("The batch does not seem to contain any images")
     return names, size
 
 
@@ -152,8 +146,8 @@ def get_subjects_from_batch(batch: Dict) -> List:
             klass = LabelMap if is_label else ScalarImage
             image = klass(tensor=data, affine=affine, filename=path.name)
             subject_dict[image_name] = image
-            subject_dict['subj_id'] = batch['subj_id'][i]
-            subject_dict['scan_id'] = batch['scan_id'][i]
+            subject_dict["subj_id"] = batch["subj_id"][i]
+            subject_dict["scan_id"] = batch["scan_id"][i]
         subject = Subject(subject_dict)
         if constants.HISTORY in batch:
             applied_transforms = batch[constants.HISTORY][i]
@@ -185,9 +179,9 @@ def default_image_loader(path: Path) -> Image.Image:
         return img.convert("RGB")
 
 
-def denormalize(tensor: torch.Tensor,
-                mean: Tuple[float, ...] = None,
-                std: Tuple[float, ...] = None):
+def denormalize(
+    tensor: torch.Tensor, mean: Tuple[float, ...] = None, std: Tuple[float, ...] = None
+):
     """
     Undoes mean/standard deviation normalization, zero to one scaling, and
     channel rearrangement for a batch of images.
@@ -209,12 +203,12 @@ def denormalize(tensor: torch.Tensor,
     """
     if not mean:
         if tensor.shape[0] == 1:
-            mean = (-0.5 / 0.5, )
+            mean = (-0.5 / 0.5,)
         else:
             mean = (-0.5 / 0.5, -0.5 / 0.5, -0.5 / 0.5)
     if not std:
         if tensor.shape[0] == 1:
-            std = (1 / 0.5, )
+            std = (1 / 0.5,)
         else:
             std = (1 / 0.5, 1 / 0.5, 1 / 0.5)
     inverse_normalize = T.Normalize(mean=mean, std=std)
@@ -223,11 +217,13 @@ def denormalize(tensor: torch.Tensor,
     return array
 
 
-def plot(imgs: Tensors,
-         baseline_imgs: Tensors = None,
-         row_titles: List[str] = None,
-         fig_title: str = None,
-         **imshow_kwargs) -> None:
+def plot(
+    imgs: Tensors,
+    baseline_imgs: Tensors = None,
+    row_titles: List[str] = None,
+    fig_title: str = None,
+    **imshow_kwargs,
+) -> None:
     """
     Plot images in a 2D grid.
 
@@ -278,8 +274,8 @@ def plot(imgs: Tensors,
                 raise TypeError(msg)
         with_baseline = True
         num_cols += 1  # First column is now the baseline images
-    if row_title:
-        if len(row_title) != num_rows:
+    if row_titles:
+        if len(row_titles) != num_rows:
             msg = (
                 "Number of elements in `row_title` ",
                 "must match the number of elements in `imgs`",
@@ -305,14 +301,14 @@ def plot(imgs: Tensors,
         plt.sca(axs[0, 0])
         plt.title(label="Baseline images", size=15)
 
-    if row_title is not None:
+    if row_titles is not None:
         for row_idx in range(num_rows):
             plt.sca(axs[row_idx, 0])
-            plt.ylabel(row_title[row_idx], rotation=0, labelpad=50, size=15)
+            plt.ylabel(row_titles[row_idx], rotation=0, labelpad=50, size=15)
             plt.tight_layout()
 
-    if title:
-        fig.suptitle(t=title, size=16)
+    if fig_title:
+        fig.suptitle(t=fig_title, size=16)
 
     fig.tight_layout()
     return fig
@@ -324,16 +320,16 @@ def load_standard_test_imgs(directory: Path = Path().cwd() / "imgs"):
     names = []
     for root, _, fnames in sorted(os.walk(directory, followlinks=True)):
         for fname in sorted(fnames):
-            if is_valid_image(Path(fname)):
+            if is_valid_image(Path(fname)):  # TODO: implement this
                 path = pjoin(root, fname)
                 test_imgs.extend([Image.open(path)])
                 names.append(Path(path).stem)
     return test_imgs, names
 
 
-def calculate_md5_dir(dirpath: Path,
-                      chunk_size: int = 1024 * 1024,
-                      verbose: bool = False) -> str:
+def calculate_md5_dir(
+    dirpath: Path, chunk_size: int = 1024 * 1024, verbose: bool = False
+) -> str:
     md5 = hashlib.md5()
     try:
         for root, _, files in sorted(os.walk(dirpath)):

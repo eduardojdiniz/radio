@@ -22,12 +22,16 @@ import sys
 from abc import ABCMeta, abstractmethod
 from itertools import zip_longest
 from pathlib import Path
-from typing import (Any, Callable, Dict, List, Optional, Tuple, Union, cast)
-from torch.utils.data import Dataset
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
+from torch.utils.data import Dataset, DataLoader, IterableDataset
 from torchvision.datasets.vision import VisionDataset  # type: ignore
-from radio.settings.pathutils import (DATA_ROOT, IMG_EXTENSIONS,
-                                      is_dir_or_symlink, PathType,
-                                      is_valid_extension)
+from radio.settings.pathutils import (
+    DATA_ROOT,
+    IMG_EXTENSIONS,
+    is_dir_or_symlink,
+    PathType,
+    is_valid_extension,
+)
 from .datautils import default_image_loader
 from .datatypes import GenericEvalType, GenericTrainType
 
@@ -35,8 +39,12 @@ Sample = List[Tuple[Path, int]]
 OneSample = Union[Dict[str, Tuple[Any, ...]], Tuple[Any, ...]]
 
 __all__ = [
-    "DatasetType", "EvalDatasetType", "TrainDatasetType", "BaseVisionDataset",
-    "FolderDataset", "ImageFolder"
+    "DatasetType",
+    "EvalDatasetType",
+    "TrainDatasetType",
+    "BaseVisionDataset",
+    "FolderDataset",
+    "ImageFolder",
 ]
 
 
@@ -46,8 +54,7 @@ def find_classes(directory: Path) -> Tuple[List[str], Dict[str, int]]:
 
     See :class:`FolderDataset` for details.
     """
-    classes = sorted(
-        [entry.name for entry in os.scandir(directory) if entry.is_dir()])
+    classes = sorted([entry.name for entry in os.scandir(directory) if entry.is_dir()])
 
     if not classes:
         msg = f"Couldn't find any class folder in {directory}."
@@ -74,8 +81,7 @@ def make_dataset(  # noqa: C901 - C901: Function is too complex.
     the ``find_classes`` function by default.
     """
     # Arguments parsing
-    assert is_dir_or_symlink(
-        directory), f"{directory} is not a valid directory"
+    assert is_dir_or_symlink(directory), f"{directory} is not a valid directory"
 
     if class_to_idx is None:
         _, class_to_idx = find_classes(directory)
@@ -118,8 +124,9 @@ def make_dataset(  # noqa: C901 - C901: Function is too complex.
                     available_classes.add(target_class)
 
         # This ensures the maximum number of samples per class is respected.
-        instances_dict[
-            target_class] = class_instances[:min(max_class_size, n_instances)]
+        instances_dict[target_class] = class_instances[
+            : min(max_class_size, n_instances)
+        ]
 
     empty_classes = set(class_to_idx.keys()) - available_classes
     if empty_classes:
@@ -175,9 +182,9 @@ class BaseVisionDataset(VisionDataset, metaclass=ABCMeta):
         max_class_size: int = sys.maxsize,
         max_dataset_size: int = sys.maxsize,
     ) -> None:
-        super().__init__(root=Path(root),
-                         transform=transform,
-                         target_transform=target_transform)
+        super().__init__(
+            root=Path(root), transform=transform, target_transform=target_transform
+        )
         self.max_class_size = max_class_size
         self.max_dataset_size = max_dataset_size
 
@@ -504,3 +511,50 @@ class ImageFolder(FolderDataset):
 DatasetType = Union[Dataset, BaseVisionDataset]
 TrainDatasetType = GenericTrainType[DatasetType]
 EvalDatasetType = GenericEvalType[DatasetType]
+
+
+def make_dataloader(
+    self,
+    dataset: DatasetType,
+    batch_size: Optional[int] = None,
+    shuffle: Optional[bool] = None,
+    num_workers: Optional[int] = None,
+    pin_memory: Optional[bool] = None,
+    drop_last: Optional[bool] = None,
+) -> DataLoader:
+    """
+        Instantiate a DataLoader.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            How many samples per batch to load. Default = ``32``.
+        shuffle : bool, optional
+            Whether to shuffle the data at every epoch. Default = ``False``.
+        num_workers : int, optional
+            How many subprocesses to use for data loading. ``0`` means that the
+            data will be loaded in the main process. Default: ``0``.
+        pin_memory : bool, optional
+            If ``True``, the data loader will copy Tensors into CUDA pinned
+            memory before returning them.
+        drop_last : bool, optional
+            Set to ``True`` to drop the last incomplete batch, if the dataset
+            size is not divisible by the batch size. If ``False`` and the size
+            of dataset is not divisible by the batch size, then the last batch
+            will be smaller. Default = ``False``.
+
+        Returns
+        -------
+        _ : DataLoader
+        """
+    shuffle = shuffle if shuffle else self.shuffle
+    shuffle &= not isinstance(dataset, IterableDataset)
+    return DataLoader(
+        dataset=dataset,
+        batch_size=batch_size if batch_size else self.batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers if num_workers else self.num_workers,
+        pin_memory=pin_memory if pin_memory else self.pin_memory,
+        drop_last=drop_last if drop_last else self.drop_last,
+    )
+
