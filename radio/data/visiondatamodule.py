@@ -9,14 +9,12 @@ split, transform, and process the data.
 """
 
 from abc import abstractmethod
-from typing import (Any, Callable, Mapping, Optional, Sequence, Sized, List,
-                    Tuple, cast)
+from typing import Any, Callable, Mapping, Optional, Sequence, Sized, List, Tuple, cast
 import shutil
-from torch.utils.data import DataLoader, IterableDataset
 import torchio as tio
 import numpy as np
 from ..settings.pathutils import is_dir_or_symlink
-from .dataset import DatasetType
+from .dataset import DatasetType, make_dataloader
 from .validation import TrainDataLoaderType, EvalDataLoaderType
 from .basedatamodule import BaseDataModule
 from .datatypes import TrainSizeType, EvalSizeType
@@ -104,7 +102,7 @@ class VisionDataModule(BaseDataModule):
         Verify if test/train/val splitted.
         """
         if not is_dir_or_symlink(self.root):
-            raise OSError('Study data directory not found!')
+            raise OSError("Study data directory not found!")
         self.check_if_data_split()
         self.dataset_cls(self.root, train=True, download=True)
         self.dataset_cls(self.root, train=False, download=True)
@@ -124,11 +122,15 @@ class VisionDataModule(BaseDataModule):
         shapes_tuple : Tuple[int, int, int]
             Max height, width and depth across all subjects.
         """
+
         dataset = tio.SubjectsDataset(subjects)
-        shapes = np.array([
-            image.spatial_shape for subject in dataset.dry_iter()
-            for image in subject.get_images()
-        ])
+        shapes = np.array(
+            [
+                image.spatial_shape
+                for subject in dataset.dry_iter()
+                for image in subject.get_images()
+            ]
+        )
 
         shapes_tuple = tuple(map(int, shapes.max(axis=0).tolist()))
         return cast(Tuple[int, int, int], shapes_tuple)
@@ -144,54 +146,55 @@ class VisionDataModule(BaseDataModule):
             If stage = None, set-up all stages. Default = None.
         """
         if stage in (None, "fit"):
-            train_transforms = self.default_transforms(
-                stage="fit"
-            ) if self.train_transforms is None else self.train_transforms
-
-            val_transforms = self.default_transforms(
-                stage="fit"
-            ) if self.val_transforms is None else self.val_transforms
-
-            train_dataset = self.dataset_cls(
-                self.root,
-                train=True,
-                transform=train_transforms,
-                **self.EXTRA_ARGS,
+            train_transforms = (
+                self.default_transforms(stage="fit")
+                if self.train_transforms is None
+                else self.train_transforms
             )
 
-            val_dataset = self.dataset_cls(self.root,
-                                           train=True,
-                                           transform=val_transforms,
-                                           **self.EXTRA_ARGS)
+            val_transforms = (
+                self.default_transforms(stage="fit")
+                if self.val_transforms is None
+                else self.val_transforms
+            )
 
-            self.validation = self.val_cls(train_dataset=train_dataset,
-                                           val_dataset=val_dataset,
-                                           batch_size=self.batch_size,
-                                           shuffle=self.shuffle,
-                                           num_workers=self.num_workers,
-                                           pin_memory=self.pin_memory,
-                                           drop_last=self.drop_last,
-                                           num_folds=self.num_folds,
-                                           seed=self.seed)
+            train_dataset = self.dataset_cls(
+                self.root, train=True, transform=train_transforms, **self.EXTRA_ARGS,
+            )
+
+            val_dataset = self.dataset_cls(
+                self.root, train=True, transform=val_transforms, **self.EXTRA_ARGS
+            )
+
+            self.validation = self.val_cls(
+                train_dataset=train_dataset,
+                val_dataset=val_dataset,
+                batch_size=self.batch_size,
+                shuffle=self.shuffle,
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                drop_last=self.drop_last,
+                num_folds=self.num_folds,
+                seed=self.seed,
+            )
 
             self.validation.setup(self.val_split)
             self.has_validation = True
 
             self.train_dataset = train_dataset
-            self.size_train = self.size_train_dataset(
-                self.validation.train_samplers)
+            self.size_train = self.size_train_dataset(self.validation.train_samplers)
             self.val_dataset = val_dataset
-            self.size_val = self.size_eval_dataset(
-                self.validation.val_samplers)
+            self.size_val = self.size_eval_dataset(self.validation.val_samplers)
 
         if stage in (None, "test"):
-            test_transforms = self.default_transforms(
-                stage="test"
-            ) if self.test_transforms is None else self.test_transforms
-            self.test_dataset = self.dataset_cls(self.root,
-                                                 train=False,
-                                                 transform=test_transforms,
-                                                 **self.EXTRA_ARGS)
+            test_transforms = (
+                self.default_transforms(stage="test")
+                if self.test_transforms is None
+                else self.test_transforms
+            )
+            self.test_dataset = self.dataset_cls(
+                self.root, train=False, transform=test_transforms, **self.EXTRA_ARGS
+            )
             self.size_test = self.size_eval_dataset(self.test_dataset)
 
     @abstractmethod
@@ -277,53 +280,7 @@ class VisionDataModule(BaseDataModule):
             return [len(ds) for ds in eval_dataset]
         return len(eval_dataset)
 
-    def dataloader(
-        self,
-        dataset: DatasetType,
-        batch_size: Optional[int] = None,
-        shuffle: Optional[bool] = None,
-        num_workers: Optional[int] = None,
-        pin_memory: Optional[bool] = None,
-        drop_last: Optional[bool] = None,
-    ) -> DataLoader:
-        """
-        Instantiate a DataLoader.
-
-        Parameters
-        ----------
-        batch_size : int, optional
-            How many samples per batch to load. Default = ``32``.
-        shuffle : bool, optional
-            Whether to shuffle the data at every epoch. Default = ``False``.
-        num_workers : int, optional
-            How many subprocesses to use for data loading. ``0`` means that the
-            data will be loaded in the main process. Default: ``0``.
-        pin_memory : bool, optional
-            If ``True``, the data loader will copy Tensors into CUDA pinned
-            memory before returning them.
-        drop_last : bool, optional
-            Set to ``True`` to drop the last incomplete batch, if the dataset
-            size is not divisible by the batch size. If ``False`` and the size
-            of dataset is not divisible by the batch size, then the last batch
-            will be smaller. Default = ``False``.
-
-        Returns
-        -------
-        _ : DataLoader
-        """
-        shuffle = shuffle if shuffle else self.shuffle
-        shuffle &= not isinstance(dataset, IterableDataset)
-        return DataLoader(
-            dataset=dataset,
-            batch_size=batch_size if batch_size else self.batch_size,
-            shuffle=shuffle,
-            num_workers=num_workers if num_workers else self.num_workers,
-            pin_memory=pin_memory if pin_memory else self.pin_memory,
-            drop_last=drop_last if drop_last else self.drop_last,
-        )
-
-    def train_dataloader(self, *args: Any,
-                         **kwargs: Any) -> TrainDataLoaderType:
+    def train_dataloader(self, *args: Any, **kwargs: Any) -> TrainDataLoaderType:
         """
         Generates one or multiple Pytorch DataLoaders for train.
 
@@ -346,7 +303,7 @@ class VisionDataModule(BaseDataModule):
                     mapping[key] = _handle_is_mapping(dset)
                 if isinstance(dset, Sequence):
                     mapping[key] = _handle_is_sequence(dset)
-                mapping[key] = self.dataloader(dset, **loader_kwargs)
+                mapping[key] = make_dataloader(dset, **loader_kwargs)
             return mapping
 
         def _handle_is_sequence(dataset):
@@ -356,7 +313,7 @@ class VisionDataModule(BaseDataModule):
                     sequence.append(_handle_is_mapping(dset))
                 if isinstance(dset, Sequence):
                     sequence.append(_handle_is_sequence(dset))
-                sequence.append(self.dataloader(dset, **loader_kwargs))
+                sequence.append(make_dataloader(dset, **loader_kwargs))
             return sequence
 
         if self.has_validation:
@@ -370,12 +327,13 @@ class VisionDataModule(BaseDataModule):
                     return _handle_is_mapping(self.train_dataset[0])
                 if isinstance(self.train_dataset[0], Sequence):
                     if len(self.train_dataset[0]) == 1:
-                        return self.dataloader(self.train_dataset[0][0],
-                                               **loader_kwargs)
+                        return make_dataloader(
+                            self.train_dataset[0][0], **loader_kwargs
+                        )
                     return _handle_is_sequence(self.train_dataset[0])
-                return self.dataloader(self.train_dataset[0], **loader_kwargs)
+                return make_dataloader(self.train_dataset[0], **loader_kwargs)
             return _handle_is_sequence(self.train_dataset)
-        return self.dataloader(self.train_dataset, **loader_kwargs)
+        return make_dataloader(self.train_dataset, **loader_kwargs)
 
     def val_dataloader(self, *args: Any, **kwargs: Any) -> EvalDataLoaderType:
         """
@@ -398,11 +356,9 @@ class VisionDataModule(BaseDataModule):
 
         if isinstance(self.val_dataset, Sequence):
             if len(self.val_dataset) == 1:
-                return self.dataloader(self.val_dataset[0], **loader_kwargs)
-            return [
-                self.dataloader(ds, **loader_kwargs) for ds in self.val_dataset
-            ]
-        return self.dataloader(self.val_dataset, **loader_kwargs)
+                return make_dataloader(self.val_dataset[0], **loader_kwargs)
+            return [make_dataloader(ds, **loader_kwargs) for ds in self.val_dataset]
+        return make_dataloader(self.val_dataset, **loader_kwargs)
 
     def test_dataloader(self, *args: Any, **kwargs: Any) -> EvalDataLoaderType:
         """
@@ -422,15 +378,11 @@ class VisionDataModule(BaseDataModule):
 
         if isinstance(self.test_dataset, Sequence):
             if len(self.test_dataset) == 1:
-                return self.dataloader(self.test_dataset[0], **loader_kwargs)
-            return [
-                self.dataloader(ds, **loader_kwargs)
-                for ds in self.test_dataset
-            ]
-        return self.dataloader(self.test_dataset, **loader_kwargs)
+                return make_dataloader(self.test_dataset[0], **loader_kwargs)
+            return [make_dataloader(ds, **loader_kwargs) for ds in self.test_dataset]
+        return make_dataloader(self.test_dataset, **loader_kwargs)
 
-    def predict_dataloader(self, *args: Any,
-                           **kwargs: Any) -> EvalDataLoaderType:
+    def predict_dataloader(self, *args: Any, **kwargs: Any) -> EvalDataLoaderType:
         pass
 
     def teardown(self, stage: Optional[str] = None) -> None:
