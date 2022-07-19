@@ -29,7 +29,7 @@ HAS_ENV=True
 endif
 
 ifeq (3,$(findstring 3,$(PYTHON_INTERPRETER)))
-PYTHON_VERSION="3.8"
+PYTHON_VERSION="3.10"
 else
 PYTHON_VERSION="2.7"
 endif
@@ -126,7 +126,7 @@ virtual_environment:
 		echo -e ">>> New virtualenv created. Activate with:\nworkon $(PROJECT_NAME)"; \
 	elif [[ $(HAS_ENV) = "False" ]]; then \
 		echo -e ">>> Detected conda. Creating conda environment.\n>>> Activate environment with:\nconda activate $(PROJECT_NAME)"; \
-		conda create -y -q --name $(PROJECT_NAME) python=$(PYTHON_VERSION); \
+		conda create -y --name $(PROJECT_NAME) python=$(PYTHON_VERSION); \
 	else \
 		echo -e ">>> Detected conda. Environment already exists.\n>>> Activate environment with:\nconda activate $(PROJECT_NAME)"; \
 	fi;
@@ -134,7 +134,7 @@ virtual_environment:
 ## Install Python Dependencies
 install_requirements: virtual_environment
 	@if [[ $(HAS_CONDA) = True ]]; then \
-		conda env update -q --name $(PROJECT_NAME) --file environment.yml --prune; \
+		conda env update --name $(PROJECT_NAME) --file environment.yml --prune; \
 	else \
 		workon $(PROJECT_NAME); \
 		$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel; \

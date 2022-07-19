@@ -1,72 +1,70 @@
 name: radio
+
 channels:
-    - nvidia
-    - pytorch
-    - defaults
-    - conda-forge
+  - nvidia
+  - pytorch
+  - defaults
+  - conda-forge
 
 dependencies:
-    - python=3.10
-    - cudnn=8.2
-    - cudatoolkit=11.3
-    - pytorch=1.11
-    - torchvision
-    - torchaudio
-    - coverage
-    - pytest
-    - pytest-cov
-    - coveralls
-    - flake8
-    - rope
-    - black
-    - pyyaml
-    - future # for backwards compatibility
-    - pathlib2 # for backwards compatibility
-    - pip
-    - pip:
-        - isort
-        - autoimport
-        - autoflake
-        - yapf
-        - mypy
-        - pylint
-        - dominate
-        - visdom
-        - matplotlib
-        - scikit-learn
-        - scikit-image
-        - Pillow
-        - seaborn
-        - pandas
-        - nibabel
-        - tifffile
-        - imagecodecs
-        - openslide-python
-        - gdown
-        - tqdm
-        - lmdb
-        - cucim
-        - einops
-        - mlflow
-        - psutil
-        - GPUtil
-        - tensorboard
-        - tensorboardX
-        - pytorch-lightning
-        - pytorch-ignite
-        - transformers
-        - monai
-        - batchgenerators
-        - rising
-        - torchio
-        - hydra-core
-        - hydra_colorlog
-        - hydra-submitit-launcher
-        - jupyterlab
-        - jupyterlab_vim
-        - jupytext
-        - ipywidgets
-        - types-Pillow  # typing stubs for Pillow
-        - types-requests  # typing stubs for requests
-        - pandas-stubs  # typing stubs for pandas
-        - -e .  # install package in development mode
+  - python=3.10
+  - cudnn=8.2
+  - cudatoolkit=11.3
+  - pytorch=1.11
+  - torchvision
+  - torchaudio
+  - coverage
+  - pytest
+  - pytest-cov
+  - coveralls
+  - flake8
+  - rope
+  - black
+  - SimpleITK
+  - future # for backwards compatibility
+  - pathlib2 # for backwards compatibility
+  - pip
+  - pip:
+    - isort
+    - autoimport
+    - autoflake
+    - yapf
+    - mypy
+    - pylint
+    - scipy
+    - pandas
+    - scikit-learn
+    - scikit-image
+    - matplotlib
+    - seaborn
+    - imagecodecs
+    - openslide-python
+    - pytorch-lightning
+    - pytorch-ignite
+    - torchio
+    - transformers
+    - gdown
+    - lmdb
+    - cucim
+    - einops
+    - mlflow
+    - GPUtil
+    - monai
+    - batchgenerators
+    - rising
+    - hydra-core
+    - hydra_colorlog
+    - hydra-submitit-launcher
+    - jupyterlab
+    - jupyterlab_vim
+    - jupytext
+    - ipywidgets
+    - watermark
+    - nb-clean
+    - python-dotenv
+    - duecredit
+    - sphinx
+    - types-Pillow  # typing stubs for Pillow
+    - types-requests  # typing stubs for requests
+    - pandas-stubs  # typing stubs for pandas
+    - -e .  # install package in development mode
