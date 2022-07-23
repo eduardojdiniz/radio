@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 from radio.settings.pathutils import is_dir_or_symlink, PathType, ensure_exists
 from ..visiondatamodule import VisionDataModule
 from ..datautils import get_subjects_from_batch
+from ..datatypes import SubjDictType
 
 __all__ = ["HCPDataModule"]
 
@@ -33,16 +34,16 @@ class HCPDataModule(VisionDataModule):
     Parameters
     ----------
     root : Path or str, optional
-        Root to HCP root folder.
-        Default = ``'/data/HCP'``.
+        Root to data root folder.
+        Default = ``'/data'``.
     study : str, optional
-        Study name. Default = ``''``.
-    data_dir : str, optional
-        Subdirectory where the data is located.
+        Study name. Default = ``'HCP'``.
+    subj_dir : str, optional
+        Subdirectory where the subjects are located.
         Default = ``''``.
-    step : str, optional
-        Which processing step to use.
-        Default = ``'unprocessed/3T'``.
+    data_dir : str, optional
+        Subdirectory where the subjects' data are located.
+        Default = ``'unprocessed'``.
     train_transforms : Callable, optional
         A function/transform that takes in a sample and returns a
         transformed version, e.g, ``torchvision.transforms.RandomCrop``.
@@ -58,7 +59,7 @@ class HCPDataModule(VisionDataModule):
     use_preprocessing : bool, optional
         If ``True``, preprocess samples. Default = ``True``.
     resample : bool, optional
-        If ``True``, resample all images to ``'T1'``. Default = ``False``.
+        If ``True``, resample all images to ``'3T_MPR'``. Default = ``False``.
     batch_size : int, optional
         How many samples per batch to load. Default = ``32``.
     shuffle : bool, optional
@@ -81,13 +82,13 @@ class HCPDataModule(VisionDataModule):
         If ``num_folds = 2``, then ``val_split`` specify how the
         train_dataset should be split into train/validation datasets. If
         ``num_folds > 2``, then it is not used. Default = ``0.2``.
-    intensities : List[str], optional
-        Which intensities to load. Default = ``['T1']``.
+    modalities : List[str], optional
+        Which modalities to load. Default = ``['3T_MPR']``.
     labels : List[str], optional
         Which labels to load. Default = ``[]``.
     dims : Tuple[int, int, int], optional
         Max spatial dimensions across subjects' images. If ``None``, compute
-        dimensions from dataset. Default = ``(160, 192, 160)``.
+        dimensions from dataset. Default = ``(256, 320, 320)``.
     seed : int, optional
         When `shuffle` is True, `seed` affects the ordering of the indices,
         which controls the randomness of each fold. It is also use to seed the
@@ -99,19 +100,19 @@ class HCPDataModule(VisionDataModule):
     """
     name: str = "HCP"
     dataset_cls = tio.SubjectsDataset
-    intensity2template = {
-        "T1": Template('T1w_MPR1/${subj_id}_3T_T1w_MPR1.nii.gz'),
-        "T2": Template('T2w_SPC1/${subj_id}_3T_T2w_SPC1.nii.gz'),
-    }
-    label2template: Dict[str, Template] = {}
+    img_template = Template(
+        '${modality}/${subj_id}_${field}_${modality}.nii.gz')
+    img_template_radio = Template('${subj_id}_-_${field}_-_${modality}.nii.gz')
+    label_template: Template = Template("")
+    label_template_radio: Template = Template("")
 
     def __init__(
         self,
         *args: Any,
-        root: PathType = Path('/data/HCP'),
-        study: str = '',
-        data_dir: str = '',
-        step: str = 'unprocessed/3T',
+        root: PathType = Path('/data'),
+        study: str = 'HCP',
+        subj_dir: str = '',
+        data_dir: str = 'unprocessed',
         train_transforms: Optional[tio.Transform] = None,
         val_transforms: Optional[tio.Transform] = None,
         test_transforms: Optional[tio.Transform] = None,
@@ -125,14 +126,14 @@ class HCPDataModule(VisionDataModule):
         drop_last: bool = False,
         num_folds: int = 2,
         val_split: Union[int, float] = 0.2,
-        intensities: Optional[List[str]] = None,
+        modalities: Optional[List[str]] = None,
         labels: Optional[List[str]] = None,
-        dims: Tuple[int, int, int] = (160, 192, 160),
+        dims: Tuple[int, int, int] = (256, 320, 320),
         seed: int = 41,
         verbose: bool = False,
         **kwargs: Any,
     ) -> None:
-        root = Path(root) / study / data_dir
+        root = Path(root) / study / subj_dir
         super().__init__(
             *args,
             root=root,
@@ -150,9 +151,9 @@ class HCPDataModule(VisionDataModule):
             **kwargs,
         )
         self.study = study
+        self.subj_dir = subj_dir
         self.data_dir = data_dir
-        self.step = step
-        self.intensities = intensities if intensities else ['T1', 'T2']
+        self.modalities = modalities if modalities else ['3T_MPR']
         self.labels = labels if labels else []
         self.dims = dims
         self.use_augmentation = use_augmentation
@@ -164,7 +165,7 @@ class HCPDataModule(VisionDataModule):
         """Verify data directory exists and if test/train/val splitted."""
         if not is_dir_or_symlink(self.root):
             raise OSError('Study data directory not found!')
-        self.check_if_data_split(self.step)
+        self.check_if_data_split(self.data_dir)
 
     def setup(self, stage: Optional[str] = None) -> None:
         """
@@ -249,8 +250,13 @@ class HCPDataModule(VisionDataModule):
         _ : List[tio.Subject]
             Train, test or val list of TorchIO Subjects.
         """
-        train_subjs, test_subjs, val_subjs = self.get_subjects_dicts(
-            intensities=self.intensities, labels=self.labels)
+        if not self.has_train_test_split:
+            train_subjs, test_subjs, val_subjs = self.get_subjects_dicts(
+                modalities=self.modalities, labels=self.labels)
+        else:
+            train_subjs, test_subjs, val_subjs = self.get_subjects_dicts_radio(
+                modalities=self.modalities, labels=self.labels)
+
         if fold == "train":
             subjs_dict = train_subjs
         elif fold == "test":
@@ -264,175 +270,198 @@ class HCPDataModule(VisionDataModule):
             subjects.append(subject)
         return subjects
 
-    def get_subjects_dicts(
+    def get_subjects_dicts_radio(
         self,
-        intensities: Optional[List[str]] = None,
-        labels: Optional[List[str]] = None,
-    ) -> Tuple[OrderedDict[str, OrderedDict[str, Any]], OrderedDict[
-            str, OrderedDict[str, Any]], OrderedDict[str, OrderedDict[str,
-                                                                      Any]]]:
+        modalities: List[str],
+        labels: List[str],
+    ) -> Tuple[SubjDictType, SubjDictType, SubjDictType]:
         """
-        Get paths to nii files for train/test/val images and labels.
+        Get subject IDs and the respective paths from the study data
+        directory if formated by radio.
 
         Returns
         -------
-        _ : {(str, str): Dict}, {(str, str): Dict}, {(str, str): Dict}
-            Paths to, respectively, train, test, and val images and labels.
+        _ : {(str, ...): Path}, {(str, ...): Path}, {(str, ...): Path}
+            Paths for respectively, train, test and images and labels.
         """
-
-        def _get_dict(
-            paths_dict: OrderedDict[str, Path],
-            intensities: List[str],
-            labels: List[str],
-            train: bool = True,
-        ) -> OrderedDict[str, OrderedDict[str, Any]]:
-            subjects_dict: OrderedDict[str, OrderedDict[str,
-                                                        Any]] = OrderedDict()
-            for subj_id, path in paths_dict.items():
-                subjects_dict[subj_id] = OrderedDict({
-                    "subj_id": subj_id,
-                })
-                for intensity in intensities:
-                    intensity_path = path / self.intensity2template[
-                        intensity].substitute(subj_id=subj_id)
-                    if intensity_path.is_file():
-                        subjects_dict[subj_id].update(
-                            {intensity: tio.ScalarImage(intensity_path)})
-                    else:
-                        subjects_dict.pop(subj_id, None)
-
-                if train:
-                    for label in labels:
-                        label_path = path / self.label2template[
-                            label].substitute(subj_id=subj_id)
-                        if label_path.is_file():
-                            subjects_dict[subj_id].update(
-                                {label: tio.LabelMap(label_path)})
-                        else:
-                            subjects_dict.pop(subj_id, None)
-            return subjects_dict
-
-        intensities = intensities if intensities else ['T1', 'T2']
+        modalities = modalities if modalities else ['3T_MPR']
         labels = labels if labels else []
 
-        for intensity in intensities:
-            assert intensity in self.intensity2template
+        subj_pattern = r"(\d{6})"
+        field_pattern = r"(\d{1}T)"
+        fold_pattern = r"\b(train|test|val)\b"
+        modality_pattern = r"([0-9A-Za-z]+_[0-9A-Za-z]+)"
+        regex = re.compile(fold_pattern + "/" + subj_pattern + "_-_" +
+                           field_pattern + "_-_" + modality_pattern)
 
-        for label in labels:
-            assert label in self.label2template
+        train_subjects_dict: SubjDictType = OrderedDict()
+        test_subjects_dict: SubjDictType = OrderedDict()
+        val_subjects_dict: SubjDictType = OrderedDict()
 
-        subj_train_paths, subj_test_paths, subj_val_paths = self.get_paths(
-            self.root,
-            stem=self.step,
-            has_train_test_split=self.has_train_test_split,
-            has_train_val_split=self.has_train_val_split,
-            shuffle=self.shuffle,
-            seed=self.seed,
-        )
+        dicts = {
+            "train": train_subjects_dict,
+            "test": test_subjects_dict,
+            "val": val_subjects_dict,
+        }
+        for item in (self.root / self.data_dir).glob("**/*"):
+            if item.is_file() and not item.name.startswith('.'):
+                match = regex.search(str(item))
+                if match is not None:
+                    label = ""
+                    fold, subj_id, field, modality = match.groups()
+                    img_basename = self.img_template_radio.substitute(
+                        subj_id=subj_id, field=field, modality=modality)
+                    img_path = self.root / self.data_dir / fold / img_basename
+                    label_basename = self.label_template_radio.substitute(
+                        subj_id=subj_id, field=field, modality=modality)
+                    label_path = self.root / self.data_dir / fold / label_basename
 
-        subj_train_dict = _get_dict(subj_train_paths,
-                                    intensities,
-                                    labels,
-                                    train=True)
-        subj_val_dict = _get_dict(subj_val_paths,
-                                  intensities,
-                                  labels,
-                                  train=True)
-        subj_test_dict = _get_dict(subj_test_paths,
-                                   intensities,
-                                   labels,
-                                   train=False)
+                    if 'SPC' in modality:
+                        modality = field + '_' + 'SPC'
+                    elif 'MPR' in modality:
+                        modality = field + '_' + 'MPR'
+                    elif 'FLR' in modality:
+                        modality = field + '_' + 'FLR'
+                    elif 'LABEL' in modality:
+                        label = field + '_' + modality
 
-        return subj_train_dict, subj_test_dict, subj_val_dict
+                    if subj_id not in dicts[fold]:
+                        dicts[fold][subj_id] = OrderedDict({
+                            "subj_id": subj_id,
+                            "field": field,
+                        })
 
-    @staticmethod
-    def get_paths(
-        data_root: PathType,
-        stem: str = 'unprocessed/3T',
-        has_train_test_split: bool = False,
-        has_train_val_split: bool = False,
+                    if modality in modalities and img_path.is_file():
+                        dicts[fold][subj_id].update(
+                            {modality: tio.ScalarImage(img_path)})
+                    # else:
+                    #     dicts[fold].pop(subj_id, None)
+
+                    if labels:
+                        if label in labels and label_path.is_file():
+                            dicts[fold][subj_id].update(
+                                {label: tio.LabelMap(label_path)})
+                    #    else:
+                    #        dicts[fold].pop(subj_id, None)
+
+        # Remove labels from test subjects
+        for _, subject in dicts["test"].items():
+            for label in labels:
+                subject.pop(label, None)
+
+        return train_subjects_dict, test_subjects_dict, val_subjects_dict
+
+    def get_subjects_dicts(
+        self,
+        modalities: List[str],
+        labels: List[str],
         test_split: Union[int, float] = 0.2,
-        shuffle: bool = True,
-        seed: int = 41,
-    ) -> Tuple[OrderedDict[str, Path], OrderedDict[str, Path], OrderedDict[
-            str, Path]]:
+    ) -> Tuple[SubjDictType, SubjDictType, SubjDictType]:
         """
         Get subject IDs and the respective paths from the study data
         directory.
 
         Returns
         -------
-        _ : {(str, str): Path}, {(str, str): Path}, {(str, str): Path}
+        _ : {(str, ...): Path}, {(str, ...): Path}, {(str, ...): Path}
             Paths for respectively, train, test and images and labels.
         """
 
-        def _split_subj_train_paths(
-                paths: OrderedDict) -> Tuple[OrderedDict, OrderedDict]:
-            """Split dictionary into two proportially to `test_split`."""
-            len_paths = len(paths)
+        def _split_subjects_train_test(
+                subjects: SubjDictType) -> Tuple[SubjDictType, SubjDictType]:
+            """
+            Split dictionary into two, proportially to the `test_split` ratio.
+            """
+            num_subjects = len(subjects)
             if isinstance(test_split, int):
-                train_len = len_paths - test_split
+                train_len = num_subjects - test_split
                 splits = [train_len, test_split]
             elif isinstance(test_split, float):
-                test_len = int(np.floor(test_split * len_paths))
-                train_len = len_paths - test_len
+                test_len = int(np.floor(test_split * num_subjects))
+                train_len = num_subjects - test_len
                 splits = [train_len, test_len]
             else:
                 raise ValueError(f"Unsupported type {type(test_split)}")
-            indexes = list(range(len_paths))
-            if shuffle:
-                np.random.seed(seed)
+            indexes = list(range(num_subjects))
+            if self.shuffle:
+                np.random.seed(self.seed)
                 np.random.shuffle(indexes)
-            train_idx, test_idx = indexes[:splits[0]], indexes[:splits[1]]
 
-            paths_list = list(paths.items())
+            train_idx, test_idx = indexes[:splits[0]], indexes[-splits[1]:]
 
-            subj_train_paths = OrderedDict([
-                value for idx, value in enumerate(paths_list)
+            subjects_list = list(subjects.items())
+
+            train_subjects_dict = OrderedDict([
+                value for idx, value in enumerate(subjects_list)
                 if idx in train_idx
             ])
-            subj_test_paths = OrderedDict([
-                value for idx, value in enumerate(paths_list)
+            test_subjects_dict = OrderedDict([
+                value for idx, value in enumerate(subjects_list)
                 if idx in test_idx
             ])
-            return subj_train_paths, subj_test_paths
+            return train_subjects_dict, test_subjects_dict
 
-        def _get_subj_paths(data_root, regex):
-            subj_paths = OrderedDict()
-            for item in data_root.glob("*"):
-                if not item.is_dir() and not item.name.startswith('.'):
-                    match = regex.search(str(item))
-                    if match is not None:
-                        subj_id = match.groups()
-                        subj_paths[subj_id] = data_root
-            return subj_paths
+        modalities = modalities if modalities else ['3T_MPR']
+        labels = labels if labels else []
 
-        data_root = Path(data_root)
-        subj_pattern = r"\d{6}"
-        no_split_regex = re.compile("(" + subj_pattern + ")")
-        has_split_regex = re.compile("(" + subj_pattern + ")")
+        subj_pattern = r"(\d{6})"
+        field_pattern = r"(\d{1}T)"
+        modality_pattern = r"([0-9A-Za-z]+_[0-9A-Za-z]+)"
+        regex = re.compile(subj_pattern + "/" + self.data_dir + "/" +
+                           field_pattern + "/" + modality_pattern)
+        subjects_dict: SubjDictType = OrderedDict()
+        val_subjects_dict: SubjDictType = OrderedDict()
 
-        if not has_train_test_split:
-            paths = OrderedDict()
-            for item in data_root.glob("*"):
-                if item.is_dir() and not item.name.startswith('.'):
-                    match = no_split_regex.search(str(item))
-                    if match is not None:
-                        subj_id, = match.groups()
-                        paths[subj_id] = data_root / subj_id / stem
-            subj_train_paths, subj_test_paths = _split_subj_train_paths(paths)
-        else:
-            train_root = data_root / stem / "train"
-            subj_train_paths = _get_subj_paths(train_root, has_split_regex)
-            test_root = data_root / stem / "test"
-            subj_test_paths = _get_subj_paths(test_root, has_split_regex)
+        for item in self.root.glob("**/*"):
+            if item.is_dir() and not item.name.startswith('.'):
+                match = regex.search(str(item))
+                if match is not None:
+                    label = ""
+                    subj_id, field, modality = match.groups()
+                    img_basename = self.img_template.substitute(
+                        subj_id=subj_id, field=field, modality=modality)
+                    img_path = self.root / subj_id / self.data_dir / field / img_basename
+                    label_basename = self.label_template.substitute(
+                        subj_id=subj_id, field=field, modality=modality)
+                    label_path = self.root / subj_id / self.data_dir / field / label_basename
 
-        val_root = data_root / stem / "val"
-        subj_val_paths = _get_subj_paths(
-            val_root,
-            has_split_regex) if has_train_val_split else OrderedDict()
+                    if 'SPC' in modality:
+                        modality = field + '_' + 'SPC'
+                    elif 'MPR' in modality:
+                        modality = field + '_' + 'MPR'
+                    elif 'FLR' in modality:
+                        modality = field + '_' + 'FLR'
+                    elif 'LABEL' in modality:
+                        label = field + '_' + modality
 
-        return subj_train_paths, subj_test_paths, subj_val_paths
+                    if subj_id not in subjects_dict:
+                        subjects_dict[subj_id] = OrderedDict({
+                            "subj_id": subj_id,
+                            "field": field,
+                        })
+
+                    if modality in modalities and img_path.is_file():
+                        subjects_dict[subj_id].update(
+                            {modality: tio.ScalarImage(img_path)})
+                    # else:
+                    #     subjects_dict.pop(subj_id, None)
+
+                    if labels:
+                        if label in labels and label_path.is_file():
+                            subjects_dict[subj_id].update(
+                                {label: tio.LabelMap(label_path)})
+                    #    else:
+                    #        subjects_dict.pop(subj_id, None)
+
+        train_subjects_dict, test_subjects_dict = _split_subjects_train_test(
+            subjects_dict)
+
+        # Remove labels from test subjects
+        for _, subject in test_subjects_dict.items():
+            for label in labels:
+                subject.pop(label, None)
+
+        return train_subjects_dict, test_subjects_dict, val_subjects_dict
 
     def get_preprocessing_transforms(
         self,
@@ -452,20 +481,22 @@ class HCPDataModule(VisionDataModule):
         # Use standard orientation for all images, RAS+
         preprocess_list.append(tio.ToCanonical())
 
-        # If true, resample to T1
+        # If true, resample to T1w_MPR
         if resample:
-            preprocess_list.append(tio.Resample('T1'))
+            preprocess_list.append(tio.Resample('3T_MPR'))
 
         if shape is None:
             train_subjects = self.get_subjects(fold="train")
             test_subjects = self.get_subjects(fold="test")
-            shape = self.get_max_shape(train_subjects + test_subjects)
+            val_subjects = self.get_subjects(fold="val")
+            shape = self.get_max_shape(train_subjects + test_subjects +
+                                       val_subjects)
         else:
             shape = self.dims
 
         preprocess_list.extend([
-            tio.RescaleIntensity((-1, 1)),
-            tio.CropOrPad(shape),  # (160, 192, 160)
+            # tio.RescaleIntensity((-1, 1)),
+            tio.CropOrPad(shape),
             tio.EnsureShapeMultiple(8),  # better suited for U-Net type Nets
             tio.OneHot()  # for labels
         ])
@@ -528,8 +559,8 @@ class HCPDataModule(VisionDataModule):
              dataloader: DataLoader,
              root: PathType = Path(
                  "/media/cerebro/Workspaces/Students/Eduardo_Diniz/Studies"),
-             data_dir: str = 'processed_data',
-             step: str = 'step01_structural_processing',
+             subj_dir: str = 'radio_3T_MPR/unprocessed',
+             data_dir: str = '',
              fold: str = "train") -> None:
         """
         Arguments
@@ -538,13 +569,21 @@ class HCPDataModule(VisionDataModule):
             Root where to save data. Default = ``'~/LocalCerebro'``.
         """
         save_root = ensure_exists(
-            Path(root).expanduser() / self.study / data_dir / step / fold)
+            Path(root).expanduser() / self.study / subj_dir / fold / data_dir)
+
+        image_name2modality = {
+            "3T_MPR": "T1w_MPR1",
+            "3T_SPC": "T2w_SPC1",
+        }
 
         for batch in dataloader:
             subjects = get_subjects_from_batch(cast(Dict[str, Any], batch))
             for subject in subjects:
                 subj_id = subject["subj_id"]
+                field = subject["field"]
                 for image_name in subject.get_images_names():
-                    filename = self.intensity2template[image_name].substitute(
-                        subj_id=subj_id)
-                    subject[image_name].save(save_root / filename)
+                    filename = self.img_template_radio.substitute(
+                        subj_id=subj_id,
+                        field=field,
+                        modality=image_name2modality[image_name])
+                    subject[image_name].save(save_root / Path(filename).name)

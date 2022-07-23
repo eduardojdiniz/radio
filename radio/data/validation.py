@@ -10,7 +10,8 @@ every epoch to reduce model overfitting, use Python's ``multiprocessing``
 to speed up data retrieval, and automatic memory pinning, in an easy API.
 """
 
-from typing import (Any, Callable, List, TypeVar, Iterator, Tuple, Union, Optional)
+from typing import (Any, Callable, List, TypeVar, Iterator, Tuple, Union,
+                    Optional)
 import numpy as np
 from sklearn.model_selection import KFold  # type: ignore
 import torch
@@ -83,6 +84,7 @@ class KFoldValidation:
         multiprocessing to generate `base_seed` for workers. Pass an int for
         reproducible output across multiple function calls. Default = ``41``.
     """
+
     def __init__(
         self,
         train_dataset: DatasetType,
@@ -403,7 +405,8 @@ class OneFoldValidation:
         dataset_idx = list(range(len_dataset))
         if shuffle:
             np.random.shuffle(dataset_idx)
-        train_idx, val_idx = dataset_idx[:splits[0]], dataset_idx[:splits[1]]
+            train_idx, val_idx = dataset_idx[:splits[0]], dataset_idx[
+                -splits[1]:]
 
         return (train_idx, val_idx)
 

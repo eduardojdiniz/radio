@@ -280,7 +280,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         """
 
         def _get_dict(
-            paths_dict: OrderedDict[Tuple[str, str], Path],
+            paths_dict: SubjPathType,
             intensities: List[str],
             labels: List[str],
             train: bool = True,

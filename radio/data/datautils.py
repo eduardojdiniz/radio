@@ -4,28 +4,39 @@
 Data related utilities.
 """
 
-from typing import Any, List, Optional, Tuple, Iterable, TypeVar, Dict, Mapping
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, TypeVar
 import hashlib
 import os.path
+from os.path import join as pjoin
 import traceback
 import random
-from os.path import join as pjoin
 from pathlib import Path
+from scipy import stats  # type: ignore
+import matplotlib  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 import torch
 import torchio as tio
 import torchvision.transforms as T  # type: ignore
 from PIL import Image
+from tqdm.auto import tqdm  # type: ignore
 from torchio.data import ScalarImage, LabelMap, Subject
-from .datatypes import Tensors, SeqSeqTensor
+from .datatypes import Tensors, SeqSeqTensor, GenericTrainType
 from . import constants
+from ..settings import PathType
 
 plt.rcParams["savefig.bbox"] = "tight"
 
 Var = TypeVar("Var")
+DirCollectionType = GenericTrainType[PathType]
 
 __all__ = [
+    "create_probability_map",
+    "get_subjects_dataset",
+    "plot_histogram",
+    "compute_histogram",
+    "get_historgram_standardization_transform",
+    "get_intensity_normalization_transform",
     "get_first_batch",
     "default_image_loader",
     "denormalize",
@@ -34,6 +45,325 @@ __all__ = [
     "load_standard_test_imgs",
     "check_integrity",
 ]
+
+
+def create_probability_map(
+    image,
+    patch_size,
+    slice_range: Tuple[int, int] = None,
+):
+
+    data = image.data
+    probabilities = torch.zeros_like(data)
+    image_size = data.shape
+
+    for idx, dim in enumerate(patch_size):
+        if dim == 1:
+            empty_dim = idx
+
+    image_size = np.array(image_size)
+    if slice_range is None:
+        leftmost = image_size[empty_dim + 1] // 2 - 5
+        rightmost = image_size[empty_dim + 1] // 2 + 5
+    else:
+        leftmost, rightmost = slice_range
+
+    probability_voxel_in = 1
+    probability_voxel_out = 0
+
+    if empty_dim == 0:  # Sagittal
+        probabilities[:, :leftmost, :, :] = probability_voxel_out
+        probabilities[:, leftmost:rightmost, :, :] = probability_voxel_in
+        probabilities[:, rightmost:, :, :] = probability_voxel_out
+    elif empty_dim == 1:  # Coronal
+        probabilities[:, :, :leftmost, :] = probability_voxel_out
+        probabilities[:, :, leftmost:rightmost, :] = probability_voxel_in
+        probabilities[:, :, rightmost:, :] = probability_voxel_out
+    else:  # Axial
+        probabilities[:, :, :, :leftmost] = probability_voxel_out
+        probabilities[:, :, :, leftmost:rightmost] = probability_voxel_in
+        probabilities[:, :, :, rightmost:] = probability_voxel_out
+    return probabilities
+
+
+def flatten_dir_collection_type(
+        dir_collection: DirCollectionType) -> List[Path]:
+    """
+    Flatten a directory collection, i.e., returns a collection of type
+    List[Path].
+
+    Parameters
+    ----------
+    dir_collection : DirCollectionType
+        A collection of directories where the data are stored.
+
+    Returns
+    -------
+    _ : List[Path]
+    """
+
+    def _handle_is_mapping(dir_collection):
+        sequence = []
+        for _, dset_dir in dir_collection.items():
+            if isinstance(dset_dir, Mapping):
+                sequence.extend(_handle_is_mapping(dset_dir))
+            elif isinstance(dset_dir, List):
+                sequence.extend(_handle_is_sequence(dset_dir))
+            else:
+                sequence.append(Path(dset_dir))
+        return sequence
+
+    def _handle_is_sequence(dir_collection):
+        sequence = []
+        for dset_dir in dir_collection:
+            if isinstance(dset_dir, Mapping):
+                sequence.extend(_handle_is_mapping(dset_dir))
+            elif isinstance(dset_dir, List):
+                sequence.extend(_handle_is_sequence(dset_dir))
+            else:
+                sequence.append(Path(dset_dir))
+        return sequence
+
+    if isinstance(dir_collection, Mapping):
+        return _handle_is_mapping(dir_collection)
+    if isinstance(dir_collection, List):
+        if len(dir_collection) == 1:
+            if isinstance(dir_collection[0], Mapping):
+                return _handle_is_mapping(dir_collection[0])
+            if isinstance(dir_collection[0], List):
+                if len(dir_collection[0]) == 1:
+                    return [Path(dir_collection[0][0])]
+                return _handle_is_sequence(dir_collection[0])
+            return [Path(dir_collection[0])]
+        return _handle_is_sequence(dir_collection)
+    return [Path(dir_collection)]
+
+
+def get_subjects_dataset(
+    dir_collection: DirCollectionType,
+) -> Tuple[tio.SubjectsDataset, tio.SubjectsDataset, tio.SubjectsDataset]:
+    """
+    Create train/test/val tio.SubjectsDataset from a directory collection.
+
+    Parameters
+    ----------
+    dir_collection : DirCollectionType
+        A collection of directories where the data are stored.
+
+    Returns
+    -------
+    _ : Tuple[tio.SubjectsDataset, tio.SubjectsDataset, tio.SubjectsDataset]
+        Subjects Dataset for respectively, train, test, and validation images.
+    """
+    subjects: Dict[str, List[tio.Subject]] = {
+        "train": [],
+        "test": [],
+        "val": [],
+    }
+
+    dir_list = flatten_dir_collection_type(dir_collection)
+
+    for directory in dir_list:
+        for fold in ["train", "test", "val"]:
+            img_dir = directory / fold
+            img_paths = [
+                p.resolve() for p in sorted(img_dir.glob("*"))
+                if p.suffixes in [['.nii', '.gz'], ['.nii']]
+            ]
+            for img_path in img_paths:
+                subject = tio.Subject(mri=tio.ScalarImage(img_path))
+                subjects[fold].append(subject)
+    train_dataset = tio.SubjectsDataset(subjects["train"])
+    test_dataset = tio.SubjectsDataset(subjects["test"])
+    val_dataset = tio.SubjectsDataset(subjects["val"])
+    return train_dataset, test_dataset, val_dataset
+
+
+def plot_histogram(
+    axis: matplotlib.axes.Axes,
+    tensor: torch.Tensor,
+    num_positions: int = 100,
+    label: str = None,
+    alpha: float = 0.05,
+    color: str = 'black',
+) -> None:
+    """
+    Plot Histogram.
+
+    Parameters
+    ----------
+    axis : matplotlib.axes.Axes
+        Matplotlib Axis object.
+    tensor : torch.Tensor
+        Tensor with data.
+    num_positions : int, Optional
+        Number of positions on x-axis. Default = ``100``.
+    label : str, Optional
+        Plot label. Default = ``None``.
+    alpha : float, Optional
+        Plot alpha value. Default = ``0.05``.
+    color : str, Optional
+        Plot color. Default = ``"black"``.
+    """
+    values = tensor.numpy().ravel()
+    kernel = stats.gaussian_kde(values)
+    positions = np.linspace(values.min(), values.max(), num=num_positions)
+    histogram = kernel(positions)
+    kwargs = dict(linewidth=1, color=color, alpha=alpha)
+    if label is not None:
+        kwargs['label'] = label
+    axis.plot(positions, histogram, **kwargs)
+
+
+def compute_histogram(
+    image_paths: List[Path] = None,
+    dataset: tio.SubjectsDataset = None,
+    transform: tio.Transform = None,
+    xlim: Tuple[float, float] = (-100, 2000),
+    ylim: Tuple[float, float] = (0, 0.004),
+    title: str = None,
+    xlabel: str = 'Intensity',
+    name2colordict: Dict[str, str] = None,
+) -> matplotlib.axes.Axes:
+    """
+    Compute and plot histogram.
+
+    Parameters
+    ----------
+    image_paths : List[Path], Optional
+        List with image paths. An alternative to providing ``dataset``. At
+        least one of ``dataset`` or ``image_paths`` must be not ``None``.
+        Default = ``None``.
+    dataset : tio.SubjectsDataset, Optional
+        Subjects Dataset. An alternative to providing ``image_paths``. If a
+        dataset is provided, then it will be used instead of the image paths.
+        Default = ``None``.
+    transform : tio.Transform, Optional
+        Transform to apply to samples prior to computing histogram.
+        Default = ``None``.
+    xlim : Tuple[float, float], Optional
+        x-axis limits. Default = ``(-100, 2000)``.
+    ylim : Tuple[float, float], Optional
+        y-axis limits. Default = ``(0, 0.004)``.
+    title : str, Optional
+        Histogram title. Default = ``None``.
+    xlabel : str, Optional
+        x-axis label. Default = ``"Intensity"``.
+    name2colordict : Dict[str, str], Optional
+        Substring of image paths to be matched as keys and corresponding plot
+        color as value. Default = ``{3T_-_T1w_MPR: blue, 7T_-_T1w_MPR: red}``.
+
+    Returns
+    -------
+    _ : matplotlib.axes.Axes
+        Returns the plot axis.
+    """
+    both_none = image_paths is None and dataset is None
+    both_something = image_paths is not None and dataset is not None
+    if both_none or both_something:
+        both_none_or_something_msg = (
+            "Both 'image_paths' and 'dataset' cannot be None ",
+            "or not None at the same time",
+        )
+        raise ValueError(both_none_or_something_msg)
+
+    name2colordict = name2colordict if name2colordict else {
+        '3T_-_T1w_MPR': 'blue',
+        '7T_-_T1w_MPR': 'red'
+    }
+    _, axis = plt.subplots(dpi=100)
+
+    iterable = dataset if dataset else image_paths
+
+    for sample in tqdm(iterable):
+        sample = sample if dataset else tio.ScalarImage({'mri': sample})
+        if transform:
+            sample = transform(sample)
+        tensor = sample.mri.data
+        path = sample.mri.path
+        for name, color in name2colordict.items():
+            plot_color = color if name in path.name else 'black'
+        plot_histogram(axis, tensor, color=plot_color)
+
+    # axis.set_xlim(*xlim)
+    # axis.set_ylim(*ylim)
+    axis.set_title(title)
+    axis.set_xlabel(xlabel)
+    axis.grid()
+
+    return axis
+
+
+def get_historgram_standardization_transform(
+    image_paths: List[Path],
+    output_histogram_landmarks_path: str = 'histogram_landmarks.npy',
+) -> tio.Transform:
+    """
+    Trains a tio.HistogramStandardization transform.
+
+    Parameters
+    ----------
+    image_paths : List[Path]
+        List with image paths.
+    output_histogram_landmarks_path : Path, Optional
+        Path to file to store the histogram landmarks Numpy array.
+        Default = ``'histogram_landmarks.npy'``.
+
+    Returns
+    -------
+     : tio.Transform
+       Trained tio.HistogramStandardization transform.
+    """
+    landmarks = tio.HistogramStandardization.train(
+        image_paths, output_path=output_histogram_landmarks_path)
+    landmarks_dict = {'mri': landmarks}
+    return tio.HistogramStandardization(landmarks_dict)
+
+
+def get_intensity_normalization_transform(
+    image_paths: List[Path],
+    output_histogram_landmarks_path: str = 'histogram_landmarks.npy',
+    include_histogram_norm: bool = True,
+    include_znorm: bool = True,
+) -> tio.Transform:
+    """
+    Get a transform to normalize image intensities by first performing
+    histogram standardization followed by Z-normalization.
+    This transform ensures that intensities are similarly distributed and
+    within similar ranges. Mean and variance for the Z-standardization are
+    computed using only foreground values. Foreground is approximated as all
+    values aboute the mean.
+
+    Parameters
+    ----------
+    image_paths : List[Path]
+        List with image paths.
+    output_histogram_landmarks_path : Path, Optional
+        Path to file to store the histogram landmarks Numpy array.
+        Default = ``'histogram_landmarks.npy'``.
+
+    Returns
+    -------
+     : tio.Transform
+       Trained tio.HistogramStandardization transform followed by
+       tio.ZNormalization transform.
+
+    """
+    both_false = include_znorm is False and include_histogram_norm is False
+    if both_false:
+        raise ValueError("At least one type of normalization must be set.")
+    histogram_transform = get_historgram_standardization_transform(
+        image_paths, output_histogram_landmarks_path)
+    znorm_transform = tio.ZNormalization(
+        masking_method=tio.ZNormalization.mean)
+
+    transforms = []
+    if include_histogram_norm:
+        transforms.append(histogram_transform)
+    if include_znorm:
+        transforms.append(znorm_transform)
+
+    return tio.Compose(transforms)
 
 
 def get_first_batch(loader: Iterable,
@@ -153,7 +483,10 @@ def get_subjects_from_batch(batch: Dict) -> List:
             image = klass(tensor=data, affine=affine, filename=path.name)
             subject_dict[image_name] = image
             subject_dict['subj_id'] = batch['subj_id'][i]
-            subject_dict['scan_id'] = batch['scan_id'][i]
+            if 'scan_id' in batch:
+                subject_dict['scan_id'] = batch['scan_id'][i]
+            if 'field' in batch:
+                subject_dict['field'] = batch['field'][i]
         subject = Subject(subject_dict)
         if constants.HISTORY in batch:
             applied_transforms = batch[constants.HISTORY][i]
@@ -278,8 +611,8 @@ def plot(imgs: Tensors,
                 raise TypeError(msg)
         with_baseline = True
         num_cols += 1  # First column is now the baseline images
-    if row_title:
-        if len(row_title) != num_rows:
+    if row_titles:
+        if len(row_titles) != num_rows:
             msg = (
                 "Number of elements in `row_title` ",
                 "must match the number of elements in `imgs`",
@@ -305,14 +638,14 @@ def plot(imgs: Tensors,
         plt.sca(axs[0, 0])
         plt.title(label="Baseline images", size=15)
 
-    if row_title is not None:
+    if row_titles is not None:
         for row_idx in range(num_rows):
             plt.sca(axs[row_idx, 0])
-            plt.ylabel(row_title[row_idx], rotation=0, labelpad=50, size=15)
+            plt.ylabel(row_titles[row_idx], rotation=0, labelpad=50, size=15)
             plt.tight_layout()
 
-    if title:
-        fig.suptitle(t=title, size=16)
+    if fig_title:
+        fig.suptitle(t=fig_title, size=16)
 
     fig.tight_layout()
     return fig

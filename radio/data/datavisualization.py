@@ -53,7 +53,7 @@ def plot_subjects(
     subjects: List[Subject],
     num_samples: int = 5,
     random_samples: bool = True,
-    intensities: Optional[List[str]] = None,
+    modalities: Optional[List[str]] = None,
     labels: Optional[List[str]] = None,
     exclude_keys: Optional[List[str]] = None,
 ) -> None:
@@ -76,7 +76,7 @@ def plot_subjects(
     ]
 
     plot_dataset(dataset,
-                 intensities=intensities,
+                 modalities=modalities,
                  labels=labels,
                  exclude_keys=exclude_keys)
 
@@ -85,11 +85,13 @@ def plot_batch(
     batch: Dict[str, Any],
     num_samples: int = 5,
     random_samples: bool = True,
-    intensities: Optional[List[str]] = None,
+    modalities: Optional[List[str]] = None,
     labels: Optional[List[str]] = None,
     exclude_keys: Optional[List[str]] = None,
 ) -> None:
     """plot images and labels from a batch of images"""
+    # Parse exclude_keys
+    exclude_keys = exclude_keys if exclude_keys else ['sampling_map']
     # Create subjects dataset from batch
     batch_size = len(batch)
     if random_samples:
@@ -109,44 +111,46 @@ def plot_batch(
         if idx in samples_idx
     ]
     plot_dataset(dataset,
-                 intensities=intensities,
+                 modalities=modalities,
                  labels=labels,
                  exclude_keys=exclude_keys)
 
 
 def plot_dataset(
     dataset: tio.SubjectsDataset,
-    intensities: Optional[List[str]] = None,
+    modalities: Optional[List[str]] = None,
     labels: Optional[List[str]] = None,
     exclude_keys: Optional[List[str]] = None,
 ) -> None:
     """plot images and labels from a dataset of subjects"""
 
-    # Parse intensities, labels and exclude_keys
-    exclude_keys = exclude_keys if exclude_keys else []
+    # Parse modalities, labels and exclude_keys
+    exclude_keys = exclude_keys if exclude_keys else ['sampling_map']
     # # Assumes all subjects hold the same tio.IMAGE's
-    intensities_in_subj = list(
+    modalities_in_subj = list(
         dataset[0].get_images_dict(intensity_only=True).keys())
     labels_in_subj = list(dataset[0].get_images_dict(
-        intensity_only=False, exclude=intensities_in_subj).keys())
-    intensities_in_subj = [
-        intensity for intensity in intensities_in_subj
-        if intensity not in exclude_keys
+        intensity_only=False, exclude=modalities_in_subj).keys())
+    modalities_in_subj = [
+        modality for modality in modalities_in_subj
+        if modality not in exclude_keys
     ]
     labels_in_subj = [
         label for label in labels_in_subj if label not in exclude_keys
     ]
-    intensities = intensities if intensities else intensities_in_subj
+    modalities = modalities if modalities else modalities_in_subj
     labels = labels if labels else labels_in_subj
 
     # Filter images from dataset
-    for _, subject in enumerate(dataset):
+    filtered_subjects = []
+    for subject in dataset:
         for image_name in subject.get_images_names():
-            if image_name not in intensities or image_name not in labels:
+            if (image_name not in modalities) and (image_name not in labels):
                 subject.remove_image(image_name)
+        filtered_subjects.append(subject)
 
     # Plot subjects
-    for row_idx, subject in enumerate(dataset):
+    for row_idx, subject in enumerate(filtered_subjects):
         print(f"Subject: {row_idx + 1}")
         plot_subject(subject)
         print("\n")
@@ -178,13 +182,13 @@ def plot_subject(
         fig, axes = plt.subplots(*args, **subplots_kwargs)
         # The array of axes must be 2D so that it can be indexed correctly
         # within the plot_slice() function
-        axes = axes.T if many_images else axes.reshape(-1, 1)
+        axes = axes.T if many_images else np.reshape(axes, (-1, 1))
     else:
         args = (3, num_images) if many_images else (num_images, 3)
         fig, axes = plt.subplots(*args, **subplots_kwargs)
         # The array of axes must be 2D so that it can be indexed correctly
         # within the plot_volume() function
-        axes = axes.T if many_images else axes.reshape(-1, 3)
+        axes = axes.T if many_images else np.reshape(axes, (-1, 3))
         axes_names = ('sagittal', 'coronal', 'axial')
 
     iterable = enumerate(subject.get_images_dict(intensity_only=False).items())

@@ -8,3 +8,6 @@ from .klu_apc2 import *
 from .brain_aging_prediction import *
 from .brain_aging_prediction_patch import *
 from .hcp import *
+from .hcp_patch import *
+from .rflab import *
+from .rflab_patch import *

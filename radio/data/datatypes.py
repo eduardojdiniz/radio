@@ -41,8 +41,8 @@ TrainSizeType = GenericTrainType[int]
 
 TripletIntType = Tuple[int, int, int]
 SpatialShapeType = Union[int, TripletIntType]
-SubjPathType = OrderedDict[Tuple[str, str], Path]
-SubjDictType = OrderedDict[Tuple[str, str], OrderedDict[str, Any]]
+SubjPathType = OrderedDict[Tuple[str, ...], Path]
+SubjDictType = OrderedDict[str, OrderedDict[str, Any]]
 
 # ############
 # Sample Types
