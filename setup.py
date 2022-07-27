@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from setuptools import find_packages, setup
 
-PACKAGES = find_packages(exclude=("tests", ), include=["radio"])
+PACKAGES = find_packages(exclude=("tests",), include=["radio*"])
 
 # Get version and release info
 ver_file = Path("radio", "version.py")
