@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from setuptools import find_packages, setup
 
+# Need the * to include extra folders
 PACKAGES = find_packages(exclude=("tests",), include=["radio*"])
 
 # Get version and release info
