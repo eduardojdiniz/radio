@@ -405,8 +405,7 @@ class OneFoldValidation:
         dataset_idx = list(range(len_dataset))
         if shuffle:
             np.random.shuffle(dataset_idx)
-            train_idx, val_idx = dataset_idx[:splits[0]], dataset_idx[
-                -splits[1]:]
+        train_idx, val_idx = dataset_idx[:splits[0]], dataset_idx[-splits[1]:]
 
         return (train_idx, val_idx)
 

@@ -98,7 +98,7 @@ class RFLabDataModule(VisionDataModule):
     verbose : bool, optional
         If ``True``, print debugging messages. Default = ``False``.
     """
-    name: str = "HCP"
+    name: str = "RFLab"
     dataset_cls = tio.SubjectsDataset
     img_template = Template(
         '${modality}/${subj_id}_-_${field}_-_${modality}.nii.gz')
@@ -128,7 +128,7 @@ class RFLabDataModule(VisionDataModule):
         val_split: Union[int, float] = 0.2,
         modalities: Optional[List[str]] = None,
         labels: Optional[List[str]] = None,
-        dims: Tuple[int, int, int] = (368, 480, 384),
+        dims: Optional[Tuple[int, int, int]] = (368, 480, 384),
         seed: int = 41,
         verbose: bool = False,
         **kwargs: Any,
@@ -478,9 +478,20 @@ class RFLabDataModule(VisionDataModule):
         self,
         shape: Optional[Tuple[int, int, int]] = None,
         resample: bool = False,
+        resample_reference: str = '7T_MPR',
     ) -> tio.Transform:
         """
         Get preprocessing transorms to apply to all subjects.
+
+        Parameters
+        ----------
+        shape : Tuple[int, int, int], Optional
+            A tuple with the shape for the CropOrPad transform.
+            Default = ``None``.
+        resample : bool, Optional
+            If True, resample to ``resample_reference``. Default = ``False``.
+        resample_reference : str, Optional
+            Name of the image to resample to. Default = ``"7T_MPR"```.
 
         Returns
         -------
@@ -489,12 +500,12 @@ class RFLabDataModule(VisionDataModule):
         """
         preprocess_list: List[tio.transforms.Transform] = []
 
-        # Use standard orientation for all images, RAS+
+        # Use standard orientation for all images
         preprocess_list.append(tio.ToCanonical())
 
-        # If true, resample to T1w_MPR
+        # If true, resample to ``resample_reference``
         if resample:
-            preprocess_list.append(tio.Resample('7T_MPR'))
+            preprocess_list.append(tio.Resample(resample_reference))
 
         if shape is None:
             train_subjects = self.get_subjects(fold="train")
@@ -508,8 +519,8 @@ class RFLabDataModule(VisionDataModule):
         preprocess_list.extend([
             # tio.RescaleIntensity((-1, 1)),
             tio.CropOrPad(shape),
-            tio.EnsureShapeMultiple(8),  # better suited for U-Net type Nets
-            tio.OneHot()  # for labels
+            tio.EnsureShapeMultiple(8),  # for the U-Net
+            tio.OneHot()
         ])
 
         return tio.Compose(preprocess_list)

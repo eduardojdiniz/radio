@@ -89,11 +89,11 @@ class VisionDataModule(BaseDataModule):
         reproducible output across multiple function calls. Default = ``41``.
     """
 
-    def check_if_data_split(self, stem: str = "") -> None:
+    def check_if_data_split(self, data_dir: str = "") -> None:
         """Check if data is splitted in train, test and val folders"""
-        has_train_folder = is_dir_or_symlink(self.root / stem / "train")
-        has_test_folder = is_dir_or_symlink(self.root / stem / "test")
-        has_val_folder = is_dir_or_symlink(self.root / stem / "val")
+        has_train_folder = is_dir_or_symlink(self.root / data_dir / "train")
+        has_test_folder = is_dir_or_symlink(self.root / data_dir / "test")
+        has_val_folder = is_dir_or_symlink(self.root / data_dir / "val")
         self.has_train_test_split = bool(has_train_folder and has_test_folder)
         self.has_train_val_split = bool(has_train_folder and has_val_folder)
 

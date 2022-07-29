@@ -10,13 +10,16 @@ import radio as rio
 
 __all__ = [
     "PathType",
-    "is_valid_extension",
-    "is_valid_image",
     "SRC",
     "ROOT",
     "DATA_ROOT",
     "SAVE_ROOT",
     "CONF_ROOT",
+    "IMG_EXTENSIONS",
+    "MRI_EXTENSIONS",
+    "is_valid_extension",
+    "is_valid_image",
+    "is_valid_mri",
     "is_dir_or_symlink",
     "ensure_exists",
 ]
@@ -40,6 +43,11 @@ IMG_EXTENSIONS = (
     ".tiff",
     ".webp",
     ".pgm",
+)
+
+MRI_EXTENSIONS = (
+    ".nii",
+    ".nii.gz",
 )
 
 
@@ -79,6 +87,23 @@ def is_valid_image(filename: PathType) -> bool:
         True if the filename ends with one of the valid image extensions.
     """
     return is_valid_extension(filename, IMG_EXTENSIONS)
+
+
+def is_valid_mri(filename: PathType) -> bool:
+    """
+    Verifies if given file name has a valid MRI image extension.
+
+    Parameters
+    ----------
+    filename : str or Path
+        Path to a file.
+
+    Returns
+    -------
+    return : bool
+        True if the filename ends with one of the valid MRI image extensions.
+    """
+    return is_valid_extension(filename, MRI_EXTENSIONS)
 
 
 def is_dir_or_symlink(path: PathType) -> bool:

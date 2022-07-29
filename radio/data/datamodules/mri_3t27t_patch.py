@@ -9,25 +9,28 @@ download, split, transform, and process the data.
 """
 
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from operator import itemgetter
 from pathlib import Path
 from string import Template
 import torchio as tio  # type: ignore
 from radio.settings.pathutils import PathType
 from ..datatypes import SpatialShapeType
 from ..datautils import create_probability_map
-from .rflab import RFLabDataModule
+from .mri_3t27t import MRI3T27TDataModule
+from ..unpaired_dataset import MRIUnpairedDataset
+from ..gan_queue import GANQueue
 
-__all__ = ["RFLabPatchDataModule"]
+__all__ = ["MRI3T27TPatchDataModule"]
 
 
-class RFLabPatchDataModule(RFLabDataModule):
+class MRI3T27TPatchDataModule(MRI3T27TDataModule):
     """
-    class for making patch-based datasets which are compatible with
-    torchvision from the RFLab dataset.
+    class por making patch-based datasets which are compatible with
+    torchvision from the 3T27T dataset.
 
     Typical Workflow
     ----------------
-    data = RFLabPatchDataModule()
+    data = MRI3T27TPatchDataModule()
     data.prepare_data() # download
     data.setup(stage) # process and split
     data.teardown(stage) # clean-up
@@ -36,15 +39,19 @@ class RFLabPatchDataModule(RFLabDataModule):
     ----------
     root : Path or str, optional
         Root to data root folder.
-        Default = ``'/data'``.
+        Default = ``"/media/cerebro/Workspaces/Students/Eduardo_Diniz/Studies"``.
     study : str, optional
-        Study name. Default = ``'RFLab'``.
+        Study name. Default = ``'MRI3T27T'``.
     subj_dir : str, optional
         Subdirectory where the subjects are located.
-        Default = ``'NII/unprocessed'``.
+        Default = ``'radio/MPR/unprocessed'``.
     data_dir : str, optional
         Subdirectory where the subjects' data are located.
-        Default = ``''``.
+        Default = ````.
+    domain_a : str, Optional
+        Name of the domain A. Default = ``"3T_MPR"``.
+    domain_b : str, Optional
+        Name of the domain B. Default = ``"7T_MPR"``.
     patch_size : int or (int, int, int)
         Tuple of integers ``(w, h, d)`` to generate patches of size ``w x h x
         d``. If a single number ``n`` is provided, ``w = h = d = n``.
@@ -149,22 +156,22 @@ class RFLabPatchDataModule(RFLabDataModule):
     #: Extra arguments for dataset_cls instantiation.
     EXTRA_ARGS: dict = {}
     #: Dataset name
-    name: str = "HCP_patch"
+    name: str = "MRI3T27T_patch"
     #: Dataset class to use. E.g., torchvision.datasets.MNIST
-    dataset_cls = tio.SubjectsDataset
-    img_template = Template(
-        '${modality}/${subj_id}_-_${field}_-_${modality}.nii.gz')
-    img_template_radio = Template('${subj_id}_-_${field}_-_${modality}.nii.gz')
+    dataset_cls = MRIUnpairedDataset
+    img_template = Template('${subj_id}_-_${field}_-_${modality}.nii.gz')
     label_template: Template = Template("")
-    label_template_radio: Template = Template("")
 
     def __init__(
         self,
         *args: Any,
-        root: PathType = Path('/data'),
-        study: str = 'RFLab',
-        subj_dir: str = 'NII/unprocessed',
+        root: PathType = Path(
+            "/media/cerebro/Workspaces/Students/Eduardo_Diniz/Studies"),
+        study: str = 'MRI3T27T',
+        subj_dir: str = 'radio/MPR/unprocessed',
         data_dir: str = '',
+        domain_a: str = "3T_MPR",
+        domain_b: str = "7T_MPR",
         train_transforms: Optional[tio.Transform] = None,
         val_transforms: Optional[tio.Transform] = None,
         test_transforms: Optional[tio.Transform] = None,
@@ -200,6 +207,8 @@ class RFLabPatchDataModule(RFLabDataModule):
             study=study,
             subj_dir=subj_dir,
             data_dir=data_dir,
+            domain_a=domain_a,
+            domain_b=domain_b,
             train_transforms=train_transforms,
             val_transforms=val_transforms,
             test_transforms=test_transforms,
@@ -248,8 +257,8 @@ class RFLabPatchDataModule(RFLabDataModule):
         self.label_probabilities = label_probabilities
 
         # Queue parameters
-        self.train_queue: tio.Queue
-        self.val_queue: tio.Queue
+        self.train_queue: GANQueue
+        self.val_queue: GANQueue
         self.queue_max_length = queue_max_length
         self.samples_per_volume = samples_per_volume
         self.shuffle_subjects = shuffle_subjects
@@ -276,19 +285,19 @@ class RFLabPatchDataModule(RFLabDataModule):
             ) if self.val_transforms is None else self.val_transforms
 
             if not self.has_train_val_split:
-                train_subjects = self.get_subjects(fold="train")
-                if self.create_custom_probability_map:
-                    train_subjects = self.add_sampling_map(train_subjects)
-                train_dataset = self.dataset_cls(
-                    train_subjects,
+                train_dataset = self.get_dataset(
+                    fold="train",
                     transform=train_transforms,
-                )
-                val_dataset = self.dataset_cls(
-                    train_subjects,
+                    add_sampling_map=self.create_custom_probability_map,
+                    patch_size=self.patch_size)
+
+                val_dataset = self.get_dataset(
+                    fold="train",
                     transform=val_transforms,
-                )
-                self.train_queue = tio.Queue(
-                    cast(tio.SubjectsDataset, train_dataset),
+                    add_sampling_map=self.create_custom_probability_map,
+                    patch_size=self.patch_size)
+                self.train_queue = GANQueue(
+                    train_dataset,
                     max_length=self.queue_max_length,
                     samples_per_volume=self.samples_per_volume,
                     sampler=self.train_sampler,
@@ -298,8 +307,8 @@ class RFLabPatchDataModule(RFLabDataModule):
                     start_background=self.start_background,
                     verbose=self.verbose)
 
-                self.val_queue = tio.Queue(
-                    cast(tio.SubjectsDataset, val_dataset),
+                self.val_queue = GANQueue(
+                    val_dataset,
                     max_length=self.queue_max_length,
                     samples_per_volume=self.samples_per_volume,
                     sampler=self.train_sampler,
@@ -329,13 +338,13 @@ class RFLabPatchDataModule(RFLabDataModule):
                 self.size_val = self.size_eval_dataset(
                     self.validation.val_samplers)
             else:
-                train_subjects = self.get_subjects(fold="train")
-                if self.create_custom_probability_map:
-                    train_subjects = self.add_sampling_map(train_subjects)
-                train_dataset = self.dataset_cls(train_subjects,
-                                                 transform=train_transforms)
-                self.train_queue = tio.Queue(
-                    cast(tio.SubjectsDataset, train_dataset),
+                train_dataset = self.get_dataset(
+                    fold="train",
+                    transform=train_transforms,
+                    add_sampling_map=self.create_custom_probability_map,
+                    patch_size=self.patch_size)
+                self.train_queue = GANQueue(
+                    train_dataset,
                     max_length=self.queue_max_length,
                     samples_per_volume=self.samples_per_volume,
                     sampler=self.train_sampler,
@@ -345,16 +354,16 @@ class RFLabPatchDataModule(RFLabDataModule):
                     start_background=self.start_background,
                     verbose=self.verbose)
 
-                val_subjects = self.get_subjects(fold="val")
-                if self.create_custom_probability_map:
-                    train_subjects = self.add_sampling_map(val_subjects)
-                val_dataset = self.dataset_cls(val_subjects,
-                                               transform=val_transforms)
                 self.train_dataset = self.train_queue
                 self.size_train = self.size_train_dataset(self.train_dataset)
 
-                self.val_queue = tio.Queue(
-                    cast(tio.SubjectsDataset, val_dataset),
+                val_dataset = self.get_dataset(
+                    fold="val",
+                    transform=val_transforms,
+                    add_sampling_map=self.create_custom_probability_map,
+                    patch_size=self.patch_size)
+                self.val_queue = GANQueue(
+                    val_dataset,
                     max_length=self.queue_max_length,
                     samples_per_volume=self.samples_per_volume,
                     sampler=self.train_sampler,
@@ -370,9 +379,11 @@ class RFLabPatchDataModule(RFLabDataModule):
             test_transforms = self.default_transforms(
                 stage="test"
             ) if self.test_transforms is None else self.test_transforms
-            test_subjects = self.get_subjects(fold="test")
-            self.test_dataset = self.dataset_cls(test_subjects,
-                                                 transform=test_transforms)
+            self.test_dataset = self.get_dataset(
+                fold="test",
+                transform=test_transforms,
+                add_sampling_map=self.create_custom_probability_map,
+                patch_size=self.patch_size)
             self.size_test = self.size_eval_dataset(self.test_dataset)
 
     def get_preprocessing_transforms(
@@ -409,11 +420,12 @@ class RFLabPatchDataModule(RFLabDataModule):
             preprocess_list.append(tio.Resample(resample_reference))
 
         if shape is None:
-            train_subjects = self.get_subjects(fold="train")
-            test_subjects = self.get_subjects(fold="test")
-            val_subjects = self.get_subjects(fold="val")
-            shape = self.get_max_shape(train_subjects + test_subjects +
-                                       val_subjects)
+            train_shape = self.get_dataset(fold="train").get_max_shape()
+            test_shape = self.get_dataset(fold="test").get_max_shape()
+            shapes = [train_shape, test_shape]
+            max_shape = tuple((max(shapes, key=itemgetter(i))[i]
+                               for i in range(len(train_shape))))
+            shape = cast(Tuple[int, int, int], max_shape)
         else:
             shape = self.dims
 
@@ -467,34 +479,3 @@ class RFLabPatchDataModule(RFLabDataModule):
             Collection of validation dataloaders specifying validation samples.
         """
         return super().val_dataloader(num_workers=0, shuffle=False)
-
-    def add_sampling_map(
-        self,
-        subjects: List[tio.Subject],
-        image_reference: str = '7T_MPR',
-    ) -> List[tio.Subject]:
-        """
-        Add sampling map to list of subjects.
-
-        Parameters
-        ----------
-        subjects : List[tio.Subject]
-            List of tio.Subject instances.
-        image_reference : str, Optional
-            Name of the image to base the sampling map.
-            Default = ``"3T_MPR"```.
-
-        Returns
-        -------
-        new_subjects : List[tio.Subject]
-            List of tio.Subject instances with added sampling map.
-        """
-        new_subjects = []
-        for subject in subjects:
-            probabilities = create_probability_map(subject, self.patch_size)
-            sampling_map = tio.Image(tensor=probabilities,
-                                     affine=subject[image_reference].affine,
-                                     type=tio.SAMPLING_MAP)
-            subject.add_image(sampling_map, 'sampling_map')
-            new_subjects.append(subject)
-        return new_subjects

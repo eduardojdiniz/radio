@@ -8,12 +8,19 @@ from typing import Dict, List, Optional, Any
 import random
 import numpy as np
 import torchio as tio
+import torch
+from torchvision.utils import make_grid  # type: ignore
 from torchio.data.subject import Subject
 from torchio.data.image import Image, LabelMap
 from torchio.transforms.preprocessing.spatial.to_canonical import ToCanonical
 from .datautils import get_subjects_from_batch
+from torchvision.transforms import Grayscale as ToGrayscale
+import torchvision.transforms.functional as F
 
-__all__ = ["plot_batch", "plot_subjects", "plot_dataset"]
+__all__ = [
+    "plot_grid", "plot_batch", "plot_subjects", "plot_dataset",
+    "plot_batch_gan"
+]
 
 
 def import_mpl_plt():
@@ -81,6 +88,53 @@ def plot_subjects(
                  exclude_keys=exclude_keys)
 
 
+def plot_batch_gan(
+    batch_dict: Dict[str, Any],
+    num_samples: int = 5,
+    random_samples: bool = True,
+) -> None:
+    """plot images and labels from a batch of images"""
+    for (domain_name, (domain_batch, _)) in batch_dict.items():
+        batch_size = len(domain_batch['mri'])
+
+    if random_samples:
+        samples_idx = random.sample(
+            range(0, batch_size),
+            min(num_samples, batch_size),
+        )
+    else:
+        samples_idx = list(range(0, min(num_samples, batch_size)))
+
+    print(samples_idx)
+
+    subjects_dict = {}
+
+    # Create subjects dict from batch
+    for (domain_name, (domain_batch, _)) in batch_dict.items():
+        subjects = get_subjects_from_batch(domain_batch)
+        # Keep only samples_idx subjects in the dataset
+        _subjects = [
+            subject for idx, subject in enumerate(subjects)
+            if idx in samples_idx
+        ]
+        subjects_dict.update({domain_name: _subjects})
+
+    domain_names = subjects_dict.keys()
+
+    for row_idx, (subject_a, subject_b) in enumerate(
+            zip(*(subjects_dict[domain_name]
+                  for domain_name in domain_names))):
+        print(f"Subject: {row_idx + 1}")
+        subject_dict = {
+            domain_name[0]: subject_a.mri,
+            domain_name[1]: subject_b.mri,
+            'subj_id': row_idx,
+        }
+        subject = tio.Subject(subject_dict)
+        plot_subject(subject)
+        print("\n")
+
+
 def plot_batch(
     batch: Dict[str, Any],
     num_samples: int = 5,
@@ -114,6 +168,92 @@ def plot_batch(
                  modalities=modalities,
                  labels=labels,
                  exclude_keys=exclude_keys)
+
+
+def show(imgs):
+    _, plt = import_mpl_plt()
+    if not isinstance(imgs, list):
+        imgs = [imgs]
+    fig, axs = plt.subplots(ncols=len(imgs), squeeze=False)
+    for i, img in enumerate(imgs):
+        percentile_1, percentile_2 = np.percentile(img, (0.5, 99.5))
+        kwargs = {}
+        kwargs['vmin'] = percentile_1
+        kwargs['vmax'] = percentile_2
+        kwargs['cmap'] = 'gray'
+        axs[0, i].imshow(img, **kwargs)
+        axs[0, i].invert_xaxis()
+        axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_grid(
+    batch: Dict[str, Any],
+    num_samples: int = 8,
+    random_samples: bool = True,
+    title: str = "Domain A",
+) -> None:
+    """plot images and labels from a batch of images"""
+
+    def image_grid(array, nrows=2):
+        index, height, width, channels = array.shape
+        ncols = index // nrows
+
+        img_grid = (array.reshape(nrows, ncols, height, width,
+                                  channels).swapaxes(1, 2).reshape(
+                                      height * nrows, width * ncols))
+
+        return img_grid
+
+    # Create subjects dataset from batch
+    batch_size = batch['mri']['data'].shape[0]
+    if random_samples:
+        samples_idx = random.sample(
+            range(0, batch_size),
+            min(num_samples, batch_size),
+        )
+    else:
+        samples_idx = list(range(0, min(num_samples, batch_size)))
+
+    subjects = get_subjects_from_batch(batch)
+    sorted_subjects = [
+        subject for idx, subject in enumerate(subjects) if idx in samples_idx
+    ]
+
+    # Plot subjects
+    slices = []
+    for subject in sorted_subjects:
+        mri_slice = get_slice(subject)
+        mri_slice = mri_slice[..., np.newaxis]
+        mri_slice = mri_slice.astype(float)
+        mri_slice -= mri_slice.min(axis=(0, 1), keepdims=True)
+        mri_slice /= mri_slice.max(axis=(0, 1), keepdims=True)
+        mri_slice = mri_slice * 255
+        mri_slice = mri_slice.astype(int)
+        slices.append(mri_slice)
+
+    grid = image_grid(np.stack(slices))
+
+    show(grid)
+
+
+def get_slice(subject):
+    image = subject['mri']
+    image = ToCanonical()(image)
+    data = image.data[-1]
+    for idx, dim in enumerate(data.shape):
+        if dim == 1:
+            empty_dim = idx
+    if empty_dim == 0:
+        img_slice = rotate(data[0, :, :], radiological=True)
+    elif empty_dim == 1:
+        img_slice = rotate(data[:, 0, :], radiological=True)
+    else:
+        img_slice = rotate(data[:, :, 0], radiological=True)
+
+    return img_slice
 
 
 def plot_dataset(

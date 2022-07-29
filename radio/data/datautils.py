@@ -4,7 +4,7 @@
 Data related utilities.
 """
 
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, TypeVar
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, TypeVar, Union
 import hashlib
 import os.path
 from os.path import join as pjoin
@@ -39,6 +39,7 @@ __all__ = [
     "get_intensity_normalization_transform",
     "get_first_batch",
     "default_image_loader",
+    "mri_image_loader",
     "denormalize",
     "plot",
     "plot_batch",
@@ -48,20 +49,18 @@ __all__ = [
 
 
 def create_probability_map(
-    image,
+    subject,
     patch_size,
     slice_range: Tuple[int, int] = None,
 ):
 
-    data = image.data
-    probabilities = torch.zeros_like(data)
-    image_size = data.shape
+    probabilities = torch.zeros(1, *subject.spatial_shape)
 
     for idx, dim in enumerate(patch_size):
         if dim == 1:
             empty_dim = idx
 
-    image_size = np.array(image_size)
+    image_size = np.array((1, *subject.spatial_shape))
     if slice_range is None:
         leftmost = image_size[empty_dim + 1] // 2 - 5
         rightmost = image_size[empty_dim + 1] // 2 + 5
@@ -482,7 +481,8 @@ def get_subjects_from_batch(batch: Dict) -> List:
             klass = LabelMap if is_label else ScalarImage
             image = klass(tensor=data, affine=affine, filename=path.name)
             subject_dict[image_name] = image
-            subject_dict['subj_id'] = batch['subj_id'][i]
+            if 'subj_id' in batch:
+                subject_dict['subj_id'] = batch['subj_id'][i]
             if 'scan_id' in batch:
                 subject_dict['scan_id'] = batch['scan_id'][i]
             if 'field' in batch:
@@ -516,6 +516,47 @@ def default_image_loader(path: Path) -> Image.Image:
     with path.open(mode="rb") as fid:
         img = Image.open(fid)
         return img.convert("RGB")
+
+
+def mri_image_loader(path: Union[PathType, List[PathType]],
+                     image_name: Union[str, List[str]] = 'mri',
+                     **kwargs) -> tio.Subject:
+    """
+    Load image file as torchio.Subject.
+
+    Parameters
+    ----------
+    path : (Path or str) or List[(Path or str)]
+        Image file path or list of Image file paths.
+
+    image_name : str or List[str], Optional
+        Name of the image or list with image names. Default = ``"mri"``.
+
+    kwargs : Dict[str, Any], Optional
+        Extra set of metadata to be added to the subjects.
+
+    Returns
+    -------
+    return : torchio.Subject
+       torchio.Subject object.
+    """
+    if not isinstance(path, List):
+        path = [path]
+
+    if not isinstance(image_name, List):
+        image_name = [image_name]
+
+    assert len(path) == len(
+        image_name
+    ), "Number of file paths must be equal to the number of image names."
+
+    subject_dict = {}
+    for name, file_path in zip(image_name, path):
+        subject_dict.update({name: tio.ScalarImage(str(file_path))})
+    for key, value in kwargs.items():
+        subject_dict.update({key: value})
+
+    return tio.Subject(subject_dict)
 
 
 def denormalize(tensor: torch.Tensor,

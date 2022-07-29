@@ -11,3 +11,5 @@ from .hcp import *
 from .hcp_patch import *
 from .rflab import *
 from .rflab_patch import *
+from .mri_3t27t import *
+from .mri_3t27t_patch import *

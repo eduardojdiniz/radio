@@ -11,7 +11,6 @@ download, split, transform, and process the data.
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from pathlib import Path
 from string import Template
-import torch
 import torchio as tio  # type: ignore
 from radio.settings.pathutils import PathType
 from ..datatypes import SpatialShapeType
@@ -492,8 +491,7 @@ class HCPPatchDataModule(HCPDataModule):
         """
         new_subjects = []
         for subject in subjects:
-            probabilities = create_probability_map(subject[image_reference],
-                                                   self.patch_size)
+            probabilities = create_probability_map(subject, self.patch_size)
             sampling_map = tio.Image(tensor=probabilities,
                                      affine=subject[image_reference].affine,
                                      type=tio.SAMPLING_MAP)

@@ -26,17 +26,22 @@ from typing import (Any, Callable, Dict, List, Optional, Tuple, Union, cast)
 from torch.utils.data import Dataset
 from torchvision.datasets.vision import VisionDataset  # type: ignore
 from radio.settings.pathutils import (DATA_ROOT, IMG_EXTENSIONS,
-                                      is_dir_or_symlink, PathType,
-                                      is_valid_extension)
-from .datautils import default_image_loader
+                                      MRI_EXTENSIONS, is_dir_or_symlink,
+                                      PathType, is_valid_extension)
+from .datautils import default_image_loader, mri_image_loader
 from .datatypes import GenericEvalType, GenericTrainType
 
 Sample = List[Tuple[Path, int]]
 OneSample = Union[Dict[str, Tuple[Any, ...]], Tuple[Any, ...]]
 
 __all__ = [
-    "DatasetType", "EvalDatasetType", "TrainDatasetType", "BaseVisionDataset",
-    "FolderDataset", "ImageFolder"
+    "DatasetType",
+    "EvalDatasetType",
+    "TrainDatasetType",
+    "BaseVisionDataset",
+    "FolderDataset",
+    "ImageFolder",
+    "MRIFolder",
 ]
 
 
@@ -126,7 +131,6 @@ def make_dataset(  # noqa: C901 - C901: Function is too complex.
         empty_classes_msg = (
             "Found no valid file for the classes ",
             f"{', '.join(sorted(empty_classes))}. ",
-            f"Supported extensions are: {', '.join(IMG_EXTENSIONS)}",
         )
         raise FileNotFoundError(empty_classes_msg)
 
@@ -245,8 +249,8 @@ class FolderDataset(BaseVisionDataset):
         A function that takes path of a file and check if the file is a
         valid file (used to check of corrupt files).
     return_paths : bool
-        If True, calling the dataset returns `(sample, target), target,
-        sample path` instead of returning `(sample, target), target`.
+        If True, calling the dataset returns `(sample, target, /path/to/sample,
+        /path/to/target)` instead of returning `(sample, target)`.
 
     Notes
     -----
@@ -285,11 +289,7 @@ class FolderDataset(BaseVisionDataset):
         )
 
         if len(samples) == 0:
-            msg = (
-                f"Found 0 samples in: {root}. \n Supported ",
-                f'extensions are: {",".join(IMG_EXTENSIONS)}',
-            )
-            raise RuntimeError(msg)
+            raise RuntimeError(f"Found 0 samples in: {root}.")
 
         self.loader = loader
         self.extensions = extensions
@@ -407,7 +407,8 @@ class FolderDataset(BaseVisionDataset):
         -------
         _: Tuple[Any, ...]
             (sample, target) where target is class_index of the target class.
-            (sample, target, path) if ``self.return_paths`` is True.
+            (sample, target, /path/to/sample, /path/to/target)
+            if ``self.return_paths`` is True.
         """
         path, target = self.samples[idx]
         sample = self.loader(path)
@@ -473,8 +474,8 @@ class ImageFolder(FolderDataset):
         A function that takes path of an image file and check if the file
         is a valid image file (used to check of corrupt files).
     return_paths : bool
-        If True, calling the dataset returns `(img, label), label, image
-        path` instead of returning `(img, label), label`.
+        If True, calling the dataset returns `(sample, target, /path/to/sample,
+        /path/to/target)` instead of returning `(sample, target)`.
     """
 
     def __init__(
@@ -494,6 +495,84 @@ class ImageFolder(FolderDataset):
             transform=transform,
             target_transform=target_transform,
             extensions=IMG_EXTENSIONS if is_valid_file is None else None,
+            is_valid_file=is_valid_file,
+            return_paths=return_paths,
+            max_class_size=max_class_size,
+            max_dataset_size=max_dataset_size,
+        )
+
+
+class MRIFolder(FolderDataset):
+    """
+    A generic MRI image folder dataset where the images are arranged in this
+    way by default:
+
+    root/
+    ├── MPR
+    │   ├── xxx.nii.gz
+    │   ├── xxy.nii
+    │   └── ...
+    │   └── xxz.nii.gz
+    └── SPC
+        ├── 123.nii.gz
+        ├── nsdf3.nii.gz
+        └── ...
+        └── asd932_.nii
+
+    This class inherits from :class:`FolderDataset` so the same methods can be
+    overridden to customize the dataset.
+
+    Attributes
+    ----------
+    classes : list
+        List of the class names sorted alphabetically.
+    num_classes : int
+        Number of classes in the dataset.
+    class_to_idx : dict
+        Dict with items (class_name, class_index).
+    samples : list
+        List of (images, class_index) tuples
+    targets : list
+        The class_index value for each image in the dataset
+
+    Parameters
+    ----------
+    root : Path or str
+        Data root directory. Where to save/load the data.
+    loader : Optional[Callable]
+        A function to load a image given its path.
+        Default = ``mri_image_loader``.
+    transform : Optional[Callable]
+        A function/transform that takes in a torchio.Subject and returns a
+        transformed version, e.g, ``torchvision.transforms.RandomCrop``.
+    target_transform : Callable[Optional]
+        Optional function/transform that takes in a target and returns a
+        transformed version.
+    is_valid_file : Optional[Callable[[Path], bool]]
+        A function that takes path of an image file and check if the file
+        is a valid image file (used to check of corrupt files).
+    return_paths : bool
+        If True, calling the dataset returns `(sample, target, /path/to/sample,
+        /path/to/target)` instead of returning `(sample, target)`.
+    """
+
+    def __init__(
+        self,
+        root: PathType,
+        loader: Callable[[Path], Any] = mri_image_loader,
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+        is_valid_file: Optional[Callable[[Path], bool]] = None,
+        return_paths: bool = False,
+        max_class_size: int = sys.maxsize,
+        max_dataset_size: int = sys.maxsize,
+    ) -> None:
+        super().__init__(
+            root=root,
+            loader=loader,
+            transform=transform,
+            target_transform=target_transform,
+            extensions=MRI_EXTENSIONS if is_valid_file is None else None,
             is_valid_file=is_valid_file,
             return_paths=return_paths,
             max_class_size=max_class_size,
