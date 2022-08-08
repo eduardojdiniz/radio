@@ -430,7 +430,7 @@ class MRI3T27TPatchDataModule(MRI3T27TDataModule):
             shape = self.dims
 
         preprocess_list.extend([
-            # tio.RescaleIntensity((-1, 1)),
+            tio.RescaleIntensity((-1, 1)),
             tio.CropOrPad(shape),
             tio.EnsureShapeMultiple(8),  # for the U-Net
             tio.OneHot()

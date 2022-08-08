@@ -12,9 +12,12 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from pathlib import Path
 from string import Template
 import torchio as tio  # type: ignore
-from radio.settings.pathutils import PathType
+import numpy as np
+from torch.utils.data import DataLoader
+from radio.settings.pathutils import PathType, ensure_exists
 from ..datatypes import SpatialShapeType
-from ..datautils import create_probability_map
+from ..datautils import create_probability_map, get_subjects_from_batch
+from ..datavisualization import plot_slice, rotate, import_mpl_plt
 from .hcp import HCPDataModule
 
 __all__ = ["HCPPatchDataModule"]
@@ -155,6 +158,7 @@ class HCPPatchDataModule(HCPDataModule):
     img_template = Template(
         '${modality}/${subj_id}_${field}_${modality}.nii.gz')
     img_template_radio = Template('${subj_id}_-_${field}_-_${modality}.nii.gz')
+    png_template_radio = Template('${subj_id}_-_${field}_-_${modality}.png')
     label_template: Template = Template("")
     label_template_radio: Template = Template("")
 
@@ -419,6 +423,8 @@ class HCPPatchDataModule(HCPDataModule):
 
         preprocess_list.extend([
             # tio.RescaleIntensity((-1, 1)),
+            # tio.ZNormalization(masking_method=lambda x: x > x.mean()),
+            # tio.ZNormalization(),
             tio.CropOrPad(shape),
             tio.EnsureShapeMultiple(8),  # for the U-Net
             tio.OneHot()
@@ -498,3 +504,51 @@ class HCPPatchDataModule(HCPDataModule):
             subject.add_image(sampling_map, 'sampling_map')
             new_subjects.append(subject)
         return new_subjects
+
+    def save(self,
+             dataloader: DataLoader,
+             root: PathType = Path(
+                 "/media/cerebro/Workspaces/Students/Eduardo_Diniz/Studies"),
+             subj_dir: str = 'radio_3T_MPR_png/unprocessed',
+             data_dir: str = '',
+             fold: str = "train") -> None:
+        """
+        Arguments
+        ---------
+        root : Path or str, optional
+            Root where to save data. Default = ``'~/LocalCerebro'``.
+        """
+        save_root = ensure_exists(
+            Path(root).expanduser() / self.study / subj_dir / fold / data_dir)
+
+        image_name2modality = {
+            "3T_MPR": "T1w_MPR1",
+            "3T_SPC": "T2w_SPC1",
+            "3T_FLR": "T2w_FLR1",
+        }
+        _, plt = import_mpl_plt()
+
+        for batch in dataloader:
+            subjects = get_subjects_from_batch(cast(Dict[str, Any], batch))
+            for subject in subjects:
+                subj_id = subject["subj_id"]
+                field = subject["field"]
+                for image_name in subject.get_images_names():
+                    if image_name not in ['sampling_map']:
+                        filename = self.png_template_radio.substitute(
+                            subj_id=subj_id,
+                            field=field,
+                            modality=image_name2modality[image_name])
+                        image = subject[image_name]
+                        print(image.data[-1].shape)
+                        data = image.data[-1].numpy()
+                        img_slice = rotate(data[:, :, 0], radiological=True)
+                        # img_slice = ((img_slice * 127.5) + 127.5).astype(
+                        #     np.uint8)
+                        img_slice = img_slice.astype(np.uint8)
+
+                        plt.imsave(
+                            str(save_root / Path(filename).name),
+                            img_slice,
+                            cmap='gray',
+                        )

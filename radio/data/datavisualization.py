@@ -18,8 +18,13 @@ from torchvision.transforms import Grayscale as ToGrayscale
 import torchvision.transforms.functional as F
 
 __all__ = [
-    "plot_grid", "plot_batch", "plot_subjects", "plot_dataset",
-    "plot_batch_gan"
+    "plot_grid",
+    "plot_batch",
+    "plot_subjects",
+    "plot_dataset",
+    "plot_batch_gan",
+    "import_mpl_plt",
+    "rotate",
 ]
 
 
@@ -463,8 +468,8 @@ def plot_slice(
     _, plt = import_mpl_plt()
     fig = None
     if axes is None:
-        fig, axes = plt.subplots(1, 1, figsize=figsize)
-    axis = axes[0]
+        fig, axes = plt.subplots(1, 1, figsize=figsize, squeeze=False)
+        axis = axes[0, 0]
     if reorient:
         image = ToCanonical()(image)
     data = image.data[channel]
@@ -521,6 +526,7 @@ def plot_slice(
     plt.tight_layout()
     if output_path is not None and fig is not None:
         fig.savefig(output_path)
+        plt.close(fig)
     if show:
         plt.show()
 

@@ -31,6 +31,7 @@ Var = TypeVar("Var")
 DirCollectionType = GenericTrainType[PathType]
 
 __all__ = [
+    "to_pil",
     "create_probability_map",
     "get_subjects_dataset",
     "plot_histogram",
@@ -46,6 +47,13 @@ __all__ = [
     "load_standard_test_imgs",
     "check_integrity",
 ]
+
+
+def to_pil(image):
+    data = image.numpy().squeeze().T
+    data = data.astype(np.uint8)
+    image = Image.fromarray(data)
+    return image
 
 
 def create_probability_map(
