@@ -470,6 +470,9 @@ def plot_slice(
     if axes is None:
         fig, axes = plt.subplots(1, 1, figsize=figsize, squeeze=False)
         axis = axes[0, 0]
+    else:
+        axis = axes[0]
+
     if reorient:
         image = ToCanonical()(image)
     data = image.data[channel]

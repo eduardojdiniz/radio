@@ -60,6 +60,7 @@ def create_probability_map(
     subject,
     patch_size,
     slice_range: Tuple[int, int] = None,
+    offset: int = 0,
 ):
 
     probabilities = torch.zeros(1, *subject.spatial_shape)
@@ -70,8 +71,8 @@ def create_probability_map(
 
     image_size = np.array((1, *subject.spatial_shape))
     if slice_range is None:
-        leftmost = image_size[empty_dim + 1] // 2 - 5
-        rightmost = image_size[empty_dim + 1] // 2 + 5
+        leftmost = image_size[empty_dim + 1] // 2 - 5 + offset
+        rightmost = image_size[empty_dim + 1] // 2 + 5 + offset
     else:
         leftmost, rightmost = slice_range
 

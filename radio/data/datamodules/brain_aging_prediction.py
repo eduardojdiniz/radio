@@ -12,15 +12,15 @@ from collections import OrderedDict
 import numpy as np
 import torchio as tio  # type: ignore
 from torch.utils.data import DataLoader
-from radio.settings.pathutils import is_dir_or_symlink, PathType, ensure_exists
-from ..visiondatamodule import VisionDataModule
+from radio.settings.pathutils import PathType, ensure_exists
+from ..cerebrodatamodule import CerebroDataModule
 from ..datautils import get_subjects_from_batch
 from ..datatypes import SubjPathType, SubjDictType
 
 __all__ = ["BrainAgingPredictionDataModule"]
 
 
-class BrainAgingPredictionDataModule(VisionDataModule):
+class BrainAgingPredictionDataModule(CerebroDataModule):
     """
     Brain Aging Prediction Data Module.
 
@@ -38,12 +38,16 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         Default = ``'/media/cerebro/Studies'``.
     study : str, optional
         Study name. Default = ``'Brain_Aging_Prediction'``.
-    data_dir : str, optional
-        Subdirectory where the data is located.
+    subj_dir : str, optional
+        Subdirectory where the subjects are located.
         Default = ``'Public/data'``.
-    step : str, optional
-        Which processing step to use.
+    data_dir : str, optional
+        Subdirectory where the subjects' data are located.
         Default = ``'step01_structural_processing'``.
+    modalities : List[str], optional
+        Which modalities to load. Default = ``['T1']``.
+    labels : List[str], optional
+        Which labels to load. Default = ``[]``.
     train_transforms : Callable, optional
         A function/transform that takes in a sample and returns a
         transformed version, e.g, ``torchvision.transforms.RandomCrop``.
@@ -58,8 +62,9 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         Default = ``True``.
     use_preprocessing : bool, optional
         If ``True``, preprocess samples. Default = ``True``.
-    resample : bool, optional
-        If ``True``, resample all images to ``'T1'``. Default = ``False``.
+    resample : str, optional
+        If an intensity name is provided, resample all images to specified
+        intensity. Default = ``None``.
     batch_size : int, optional
         How many samples per batch to load. Default = ``32``.
     shuffle : bool, optional
@@ -82,10 +87,6 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         If ``num_folds = 2``, then ``val_split`` specify how the
         train_dataset should be split into train/validation datasets. If
         ``num_folds > 2``, then it is not used. Default = ``0.2``.
-    intensities : List[str], optional
-        Which intensities to load. Default = ``['T1']``.
-    labels : List[str], optional
-        Which labels to load. Default = ``[]``.
     dims : Tuple[int, int, int], optional
         Max spatial dimensions across subjects' images. If ``None``, compute
         dimensions from dataset. Default = ``(160, 192, 160)``.
@@ -99,141 +100,11 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         If ``True``, print debugging messages. Default = ``False``.
     """
     name: str = "brain_aging_prediction"
-    dataset_cls = tio.SubjectsDataset
     intensity2template = {
         "T1": Template('wstrip_m${subj_id}_${scan_id}_T1.nii'),
         "FLAIR": Template('wstrip_mr${subj_id}_${scan_id}_FLAIR.nii'),
     }
     label2template: Dict[str, Template] = {}
-
-    def __init__(
-        self,
-        *args: Any,
-        root: PathType = Path('/media/cerebro/Studies'),
-        study: str = 'Brain_Aging_Prediction',
-        data_dir: str = 'Public/data',
-        step: str = 'step01_structural_processing',
-        train_transforms: Optional[tio.Transform] = None,
-        val_transforms: Optional[tio.Transform] = None,
-        test_transforms: Optional[tio.Transform] = None,
-        use_augmentation: bool = True,
-        use_preprocessing: bool = True,
-        resample: bool = False,
-        batch_size: int = 32,
-        shuffle: bool = True,
-        num_workers: int = 0,
-        pin_memory: bool = True,
-        drop_last: bool = False,
-        num_folds: int = 2,
-        val_split: Union[int, float] = 0.2,
-        intensities: Optional[List[str]] = None,
-        labels: Optional[List[str]] = None,
-        dims: Tuple[int, int, int] = (160, 192, 160),
-        seed: int = 41,
-        verbose: bool = False,
-        **kwargs: Any,
-    ) -> None:
-        root = Path(root) / study / data_dir
-        super().__init__(
-            *args,
-            root=root,
-            train_transforms=train_transforms,
-            val_transforms=val_transforms,
-            test_transforms=test_transforms,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
-            drop_last=drop_last,
-            num_folds=num_folds,
-            val_split=val_split,
-            seed=seed,
-            **kwargs,
-        )
-        self.study = study
-        self.data_dir = data_dir
-        self.step = step
-        self.intensities = intensities if intensities else ['T1', 'FLAIR']
-        self.labels = labels if labels else []
-        self.dims = dims
-        self.use_augmentation = use_augmentation
-        self.use_preprocessing = use_preprocessing
-        self.resample = resample
-        self.verbose = verbose
-
-    def prepare_data(self, *args: Any, **kwargs: Any) -> None:
-        """Verify data directory exists and if test/train/val splitted."""
-        if not is_dir_or_symlink(self.root):
-            raise OSError('Study data directory not found!')
-        self.check_if_data_split(self.step)
-
-    def setup(self, stage: Optional[str] = None) -> None:
-        """
-        Creates train, validation and test collection of samplers.
-
-        Parameters
-        ----------
-        stage: Optional[str]
-            Either ``'fit``, ``'validate'``, or ``'test'``.
-            If stage = ``None``, set-up all stages. Default = ``None``.
-        """
-        if stage == "fit" or stage is None:
-            train_transforms = self.default_transforms(
-                stage="fit"
-            ) if self.train_transforms is None else self.train_transforms
-
-            val_transforms = self.default_transforms(
-                stage="fit"
-            ) if self.val_transforms is None else self.val_transforms
-
-            if not self.has_train_val_split:
-                train_subjects = self.get_subjects(fold="train")
-                train_dataset = self.dataset_cls(
-                    train_subjects,
-                    transform=train_transforms,
-                )
-                val_dataset = self.dataset_cls(
-                    train_subjects,
-                    transform=val_transforms,
-                )
-                self.validation = self.val_cls(
-                    train_dataset=train_dataset,
-                    val_dataset=val_dataset,
-                    batch_size=self.batch_size,
-                    shuffle=self.shuffle,
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                    drop_last=self.drop_last,
-                    num_folds=self.num_folds,
-                    seed=self.seed,
-                )
-                self.validation.setup(self.val_split)
-                self.has_validation = True
-                self.train_dataset = train_dataset
-                self.size_train = self.size_train_dataset(
-                    self.validation.train_samplers)
-                self.val_dataset = val_dataset
-                self.size_val = self.size_eval_dataset(
-                    self.validation.val_samplers)
-            else:
-                train_subjects = self.get_subjects(fold="train")
-                self.train_dataset = self.dataset_cls(
-                    train_subjects, transform=train_transforms)
-                self.size_train = self.size_train_dataset(self.train_dataset)
-
-                val_subjects = self.get_subjects(fold="val")
-                self.val_dataset = self.dataset_cls(val_subjects,
-                                                    transform=val_transforms)
-                self.size_val = self.size_eval_dataset(self.val_dataset)
-
-        if stage == "test" or stage is None:
-            test_transforms = self.default_transforms(
-                stage="test"
-            ) if self.test_transforms is None else self.test_transforms
-            test_subjects = self.get_subjects(fold="test")
-            self.test_dataset = self.dataset_cls(test_subjects,
-                                                 transform=test_transforms)
-            self.size_test = self.size_eval_dataset(self.test_dataset)
 
     def get_subjects(self, fold: str = "train") -> List[tio.Subject]:
         """
@@ -251,7 +122,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
             Train, test or val list of TorchIO Subjects.
         """
         train_subjs, test_subjs, val_subjs = self.get_subjects_dicts(
-            intensities=self.intensities, labels=self.labels)
+            modalities=self.modalities, labels=self.labels)
         if fold == "train":
             subjs_dict = train_subjs
         elif fold == "test":
@@ -267,7 +138,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
     def get_subjects_dicts(
         self,
-        intensities: Optional[List[str]] = None,
+        modalities: Optional[List[str]] = None,
         labels: Optional[List[str]] = None,
     ) -> Tuple[SubjDictType, SubjDictType, SubjDictType]:
         """
@@ -281,7 +152,7 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
         def _get_dict(
             paths_dict: SubjPathType,
-            intensities: List[str],
+            modalities: List[str],
             labels: List[str],
             train: bool = True,
         ) -> SubjDictType:
@@ -293,12 +164,12 @@ class BrainAgingPredictionDataModule(VisionDataModule):
                     "scan_id":
                     scan_id
                 })
-                for intensity in intensities:
-                    intensity_path = path / self.intensity2template[
-                        intensity].substitute(subj_id=subj_id, scan_id=scan_id)
-                    if intensity_path.is_file():
+                for modality in modalities:
+                    modality_path = path / self.intensity2template[
+                        modality].substitute(subj_id=subj_id, scan_id=scan_id)
+                    if modality_path.is_file():
                         subjects_dict[(subj_id, scan_id)].update(
-                            {intensity: tio.ScalarImage(intensity_path)})
+                            {modality: tio.ScalarImage(modality_path)})
                     else:
                         subjects_dict.pop((subj_id, scan_id), None)
 
@@ -313,18 +184,18 @@ class BrainAgingPredictionDataModule(VisionDataModule):
                             subjects_dict.pop((subj_id, scan_id), None)
             return subjects_dict
 
-        intensities = intensities if intensities else ['T1', 'FLAIR']
+        modalities = modalities if modalities else ['T1', 'FLAIR']
         labels = labels if labels else []
 
-        for intensity in intensities:
-            assert intensity in self.intensity2template
+        for modality in modalities:
+            assert modality in self.intensity2template
 
         for label in labels:
             assert label in self.label2template
 
         subj_train_paths, subj_test_paths, subj_val_paths = self.get_paths(
             self.root,
-            stem=self.step,
+            stem=self.data_dir,
             has_train_test_split=self.has_train_test_split,
             has_train_val_split=self.has_train_val_split,
             shuffle=self.shuffle,
@@ -332,15 +203,15 @@ class BrainAgingPredictionDataModule(VisionDataModule):
         )
 
         subj_train_dict = _get_dict(subj_train_paths,
-                                    intensities,
+                                    modalities,
                                     labels,
                                     train=True)
         subj_val_dict = _get_dict(subj_val_paths,
-                                  intensities,
+                                  modalities,
                                   labels,
                                   train=True)
         subj_test_dict = _get_dict(subj_test_paths,
-                                   intensities,
+                                   modalities,
                                    labels,
                                    train=False)
 
@@ -439,95 +310,45 @@ class BrainAgingPredictionDataModule(VisionDataModule):
 
         return subj_train_paths, subj_test_paths, subj_val_paths
 
-    def get_preprocessing_transforms(
-        self,
-        shape: Optional[Tuple[int, int, int]] = None,
-        resample: bool = False,
-    ) -> tio.Transform:
+    def default_preprocessing_transforms(self,
+                                         **kwargs: Any) -> List[tio.Transform]:
         """
-        Get preprocessing transorms to apply to all subjects.
+        List with preprocessing transforms to apply to all subjects.
 
         Returns
         -------
-        preprocess : tio.Transform
-            All preprocessing steps that should be applied to all subjects.
+        _ : List[tio.Transform]
+            Preprocessing transforms that should be applied to all subjects.
         """
-        preprocess_list: List[tio.transforms.Transform] = []
-
-        # Use standard orientation for all images, RAS+
-        preprocess_list.append(tio.ToCanonical())
-
-        # If true, resample to T1
-        if resample:
-            preprocess_list.append(tio.Resample('T1'))
-
-        if shape is None:
-            train_subjects = self.get_subjects(fold="train")
-            test_subjects = self.get_subjects(fold="test")
-            shape = self.get_max_shape(train_subjects + test_subjects)
-        else:
-            shape = self.dims
-
-        preprocess_list.extend([
+        shape = kwargs.get("shape", (256, 256, 256))
+        return [
             tio.RescaleIntensity((-1, 1)),
-            tio.CropOrPad(shape),  # (160, 192, 160)
+            tio.CropOrPad(shape),
             tio.EnsureShapeMultiple(8),  # better suited for U-Net type Nets
             tio.OneHot()  # for labels
-        ])
+        ]
 
-        return tio.Compose(preprocess_list)
-
-    @staticmethod
-    def get_augmentation_transforms() -> tio.Transform:
-        """"
-        Get augmentation transorms to apply to subjects during training.
+    def default_augmentation_transforms(self,
+                                        **kwargs: Any) -> List[tio.Transform]:
+        """
+        List with augmentation transforms to apply to training subjects.
 
         Returns
         -------
-        augment : tio.Transform
-            All augmentation steps that should be applied to subjects during
-            training.
+        _ : List[tio.Transform]
+            Augmentation transforms to apply to training subjects.
         """
-        augment = tio.Compose([
+        random_gamma_p = kwargs.get("random_gamma_p", 0.5)
+        random_noise_p = kwargs.get("random_noise_p", 0.5)
+        random_motion_p = kwargs.get("random_motion_p", 0.1)
+        random_bias_field_p = kwargs.get("random_bias_field_p", 0.25)
+        return [
             tio.RandomAffine(),
-            tio.RandomGamma(p=0.5),
-            tio.RandomNoise(p=0.5),
-            tio.RandomMotion(p=0.1),
-            tio.RandomBiasField(p=0.25),
-        ])
-        return augment
-
-    def default_transforms(
-        self,
-        stage: Optional[str] = None,
-    ) -> tio.Transform:
-        """
-        Default transforms and augmentations for the dataset.
-
-        Parameters
-        ----------
-        stage: Optional[str]
-            Either ``'fit``, ``'validate'``, ``'test'``, or ``'predict'``.
-            If stage = None, set-up all stages. Default = None.
-
-        Returns
-        -------
-        _: tio.Transform
-            All preprocessing steps (and if ``'fit'``, augmentation steps too)
-            that should be applied to the subjects.
-        """
-        transforms: List[tio.transforms.Transform] = []
-        if self.use_preprocessing:
-            preprocess = self.get_preprocessing_transforms(
-                shape=self.dims,
-                resample=self.resample,
-            )
-            transforms.append(preprocess)
-        if (stage == "fit" or stage is None) and self.use_augmentation:
-            augment = self.get_augmentation_transforms()
-            transforms.append(augment)
-
-        return tio.Compose(transforms)
+            tio.RandomGamma(p=random_gamma_p),
+            tio.RandomNoise(p=random_noise_p),
+            tio.RandomMotion(p=random_motion_p),
+            tio.RandomBiasField(p=random_bias_field_p),
+        ]
 
     def save(self,
              dataloader: DataLoader,

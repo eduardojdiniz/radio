@@ -12,8 +12,10 @@ from .datatypes import *
 from .datadecorators import *
 from .datautils import *
 from .visiondatamodule import *
+from .cerebrodatamodule import *
 from .basedatamodule import *
 from .constants import *
+
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     from .visiondatamodule import *

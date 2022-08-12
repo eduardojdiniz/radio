@@ -90,7 +90,14 @@ class VisionDataModule(BaseDataModule):
     """
 
     def check_if_data_split(self, data_dir: str = "") -> None:
-        """Check if data is splitted in train, test and val folders"""
+        """
+        Check if data is splitted in train, test and val folders
+
+        Parameters
+        ----------
+        data_dir: Optional[str]
+            Subdirectory where the data is located. Default = ``""``.
+        """
         has_train_folder = is_dir_or_symlink(self.root / data_dir / "train")
         has_test_folder = is_dir_or_symlink(self.root / data_dir / "test")
         has_val_folder = is_dir_or_symlink(self.root / data_dir / "val")

@@ -1,0 +1,8 @@
+python=3.10
+cudnn=8.2
+cudatoolkit=11.3
+pytorch=1.11
+torchvision
+matplotlib
+pytorch-lightning
+torchio

@@ -12,10 +12,16 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from operator import itemgetter
 from pathlib import Path
 from string import Template
+import gc
+import re
 import torchio as tio  # type: ignore
-from radio.settings.pathutils import PathType
+import numpy as np
+from tqdm import tqdm
+import psutil
+from torch.utils.data import DataLoader
+from radio.settings.pathutils import PathType, ensure_exists
 from ..datatypes import SpatialShapeType
-from ..datautils import create_probability_map
+from ..datavisualization import rotate, import_mpl_plt
 from .mri_3t27t import MRI3T27TDataModule
 from ..unpaired_dataset import MRIUnpairedDataset
 from ..gan_queue import GANQueue
@@ -431,6 +437,7 @@ class MRI3T27TPatchDataModule(MRI3T27TDataModule):
 
         preprocess_list.extend([
             tio.RescaleIntensity((-1, 1)),
+            # tio.Resize(shape),
             tio.CropOrPad(shape),
             tio.EnsureShapeMultiple(8),  # for the U-Net
             tio.OneHot()
@@ -479,3 +486,67 @@ class MRI3T27TPatchDataModule(MRI3T27TDataModule):
             Collection of validation dataloaders specifying validation samples.
         """
         return super().val_dataloader(num_workers=0, shuffle=False)
+
+    def save(self,
+             dataloader: DataLoader,
+             root: PathType = Path(
+                 "/media/cerebro/Workspaces/Students/Eduardo_Diniz/Studies"),
+             subj_dir: str = 'radio_png/unprocessed',
+             data_dir: str = '',
+             fold: str = "train") -> None:
+        """
+        Arguments
+        ---------
+        root : Path or str, optional
+            Root where to save data. Default = ``'~/LocalCerebro'``.
+        """
+
+        _, plt = import_mpl_plt()
+
+        field_pattern = r"(\d{1}T_MPR)"
+        regex = re.compile(field_pattern)
+
+        if fold == "train":
+            n_subjects = self.size_train
+        elif fold == "val":
+            n_subjects = self.size_val
+        else:
+            n_subjects = self.size_test
+
+        for dl_idx, batches in tqdm(enumerate(dataloader),
+                                    total=n_subjects / dataloader.batch_size):
+            mem = psutil.virtual_memory()
+            print(mem.used / 1024**3)
+            # mem_used.append(mem.used / 1024**3)
+
+            for batch in batches:
+                batch_size = batch['mri']['data'].shape[0]
+                for b_idx in range(batch_size):
+                    img_idx = dl_idx * batch_size + b_idx
+                    image = batch['mri']['data'][b_idx]
+                    filename_str = batch['mri']['path'][b_idx]
+                    match = regex.search(str(filename_str))
+                    if match is not None:
+                        field = match.groups()[0]
+                        if field == '3T_MPR':
+                            _fold = fold + '_3T_MPR'
+                        else:
+                            _fold = fold + '_7T_MPR'
+                        save_root = ensure_exists(
+                            Path(root).expanduser() / self.study / subj_dir /
+                            _fold / data_dir)
+                        filename = Path(filename_str)
+                        filename = Path(
+                            str(filename.name).rstrip(''.join(
+                                filename.suffixes)) + f'_{img_idx}.png')
+                        data = image[-1].numpy()
+                        img_slice = rotate(data[:, :, 0], radiological=True)
+                        img_slice = ((img_slice * 127.5) + 127.5).astype(
+                            np.uint8)
+                        plt.imsave(
+                            str(save_root / filename),
+                            img_slice,
+                            cmap='gray',
+                        )
+                        plt.clf()
+                        plt.close("all")

@@ -17,7 +17,7 @@ from torch.utils.data import DataLoader
 from radio.settings.pathutils import PathType, ensure_exists
 from ..datatypes import SpatialShapeType
 from ..datautils import create_probability_map, get_subjects_from_batch
-from ..datavisualization import plot_slice, rotate, import_mpl_plt
+from ..datavisualization import rotate, import_mpl_plt
 from .hcp import HCPDataModule
 
 __all__ = ["HCPPatchDataModule"]
@@ -46,7 +46,7 @@ class HCPPatchDataModule(HCPDataModule):
         Subdirectory where the subjects are located.
         Default = ``''``.
     data_dir : str, optional
-        Subdirectory where the subjects' data are located.
+        Subdirectory where the subjects' data arkk located.
         Default = ``'unprocessed'``.
     patch_size : int or (int, int, int)
         Tuple of integers ``(w, h, d)`` to generate patches of size ``w x h x
@@ -422,7 +422,7 @@ class HCPPatchDataModule(HCPDataModule):
             shape = self.dims
 
         preprocess_list.extend([
-            # tio.RescaleIntensity((-1, 1)),
+            tio.RescaleIntensity((-1, 1)),
             # tio.ZNormalization(masking_method=lambda x: x > x.mean()),
             # tio.ZNormalization(),
             tio.CropOrPad(shape),
@@ -540,12 +540,11 @@ class HCPPatchDataModule(HCPDataModule):
                             field=field,
                             modality=image_name2modality[image_name])
                         image = subject[image_name]
-                        print(image.data[-1].shape)
                         data = image.data[-1].numpy()
                         img_slice = rotate(data[:, :, 0], radiological=True)
-                        # img_slice = ((img_slice * 127.5) + 127.5).astype(
-                        #     np.uint8)
-                        img_slice = img_slice.astype(np.uint8)
+                        img_slice = ((img_slice * 127.5) + 127.5).astype(
+                            np.uint8)
+                        # img_slice = img_slice.astype(np.uint8)
 
                         plt.imsave(
                             str(save_root / Path(filename).name),

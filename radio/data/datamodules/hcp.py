@@ -177,7 +177,7 @@ class HCPDataModule(VisionDataModule):
             Either ``'fit``, ``'validate'``, or ``'test'``.
             If stage = ``None``, set-up all stages. Default = ``None``.
         """
-        if stage == "fit" or stage is None:
+        if stage in (None, "fit"):
             train_transforms = self.default_transforms(
                 stage="fit"
             ) if self.train_transforms is None else self.train_transforms
@@ -226,7 +226,7 @@ class HCPDataModule(VisionDataModule):
                                                     transform=val_transforms)
                 self.size_val = self.size_eval_dataset(self.val_dataset)
 
-        if stage == "test" or stage is None:
+        if stage in (None, "test"):
             test_transforms = self.default_transforms(
                 stage="test"
             ) if self.test_transforms is None else self.test_transforms
