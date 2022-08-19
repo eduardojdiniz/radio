@@ -10,13 +10,15 @@ split, transform, and process the data.
 
 from abc import ABCMeta, abstractmethod
 from typing import (Any, Mapping, Optional, Sequence, Sized, List, Tuple, cast,
-                    Union)
+                    Union, Dict)
 from pathlib import Path
 import shutil
 from torch.utils.data import DataLoader, IterableDataset
 import torchio as tio
 import numpy as np
 from ..settings.pathutils import is_dir_or_symlink, PathType
+from .datatypes import SpatialShapeType
+from .datautils import create_probability_map
 from .dataset import DatasetType
 from .validation import TrainDataLoaderType, EvalDataLoaderType
 from .basedatamodule import BaseDataModule
@@ -89,16 +91,63 @@ class CerebroDataModule(BaseDataModule, metaclass=ABCMeta):
     resample : str, optional
         If an intensity name is provided, resample all images to specified
         intensity. Default = ``None``.
+    patch_size : int or (int, int, int)
+        Tuple of integers ``(w, h, d)`` to generate patches of size ``w x h x
+        d``. If a single number ``n`` is provided, ``w = h = d = n``.
+    probability_map : str, optional
+        Name of the image in the input subject that will be used as a sampling
+        probability map.  The probability of sampling a patch centered on a
+        specific voxel is the value of that voxel in the probability map. The
+        probabilities need not be normalized. For example, voxels can have
+        values 0, 1 and 5. Voxels with value 0 will never be at the center of a
+        patch. Voxels with value 5 will have 5 times more chance of being at
+        the center of a patch that voxels with a value of 1. If ``None``,
+        uniform sampling is used. Default = ``None``.
+    label_name : str, optional
+        Name of the label image in the subject that will be used to generate
+        the sampling probability map. If ``None`` and ``probability_map`` is
+        ``None``, the first image of type ``torchio.LABEL`` found in the
+        subject subject will be used. If ``probability_map`` is not ``None``,
+        then ``label_name`` and ``label_probability`` are ignored.
+        Default = ``None``.
+    label_probabilities : Dict[int, float], optional
+        Dictionary containing the probability that each class will be sampled.
+        Probabilities do not need to be normalized. For example, a value of
+        {0: 0, 1: 2, 2: 1, 3: 1} will create a sampler whose patches centers
+        will have 50% probability of being labeled as 1, 25% of being 2 and 25%
+        of being 3. If None, the label map is binarized and the value is set to
+        {0: 0, 1: 1}. If the input has multiple channels, a value of
+        {0: 0, 1: 2, 2: 1, 3: 1} will create a sampler whose patches centers
+        will have 50% probability of being taken from a non zero value of
+        channel 1, 25% from channel 2 and 25% from channel 3. If
+        ``probability_map`` is not ``None``, then ``label_name`` and
+        ``label_probability`` are ignored. Default = ``None``.
+    queue_max_length : int, optional
+        Maximum number of patches that can be stored in the queue. Using a
+        large number means that the queue needs to be filled less often, but
+        more CPU memory is needed to store the patches. Default = ``256``.
+    samples_per_volume : int, optional
+        Number of patches to extract from each volume. A small number of
+        patches ensures a large variability in the queue, but training will be
+        slower. Default = ``16``.
     batch_size : int, optional
         How many samples per batch to load. Default = ``32``.
-    shuffle : bool, optional
-        Whether to shuffle the data at every epoch. Default = ``False``.
+    shuffle_subjects : bool, optional
+        Whether to shuffle the subjects dataset at the beginning of every epoch
+        (an epoch ends when all the patches from all the subjects have been
+        processed). Default = ``True``.
+    shuffle_patches : bool, optional
+        Whether to shuffle the patches queue at the beginning of every epoch.
+        Default = ``True``.
     num_workers : int, optional
         How many subprocesses to use for data loading. ``0`` means that the
         data will be loaded in the main process. Default: ``0``.
     pin_memory : bool, optional
         If ``True``, the data loader will copy Tensors into CUDA pinned memory
         before returning them.
+    start_background : bool, optional
+        If ``True``, the loader will start working in the background as soon as
+        the queues are instantiated. Default = ``True``.
     drop_last : bool, optional
         Set to ``True`` to drop the last incomplete batch, if the dataset size
         is not divisible by the batch size. If ``False`` and the size of
@@ -145,10 +194,19 @@ class CerebroDataModule(BaseDataModule, metaclass=ABCMeta):
         use_augmentation: bool = True,
         use_preprocessing: bool = True,
         resample: str = None,
+        patch_size: Optional[SpatialShapeType] = None,
+        probability_map: Optional[str] = None,
+        create_custom_probability_map: bool = False,
+        label_name: Optional[str] = None,
+        label_probabilities: Optional[Dict[int, float]] = None,
+        queue_max_length: int = 256,
+        samples_per_volume: int = 16,
         batch_size: int = 32,
-        shuffle: bool = True,
+        shuffle_subjects: bool = True,
+        shuffle_patches: bool = True,
         num_workers: int = 0,
         pin_memory: bool = True,
+        start_background: bool = True,
         drop_last: bool = False,
         num_folds: int = 2,
         val_split: Union[int, float] = 0.2,
@@ -165,7 +223,7 @@ class CerebroDataModule(BaseDataModule, metaclass=ABCMeta):
             val_transforms=val_transforms,
             test_transforms=test_transforms,
             batch_size=batch_size,
-            shuffle=shuffle,
+            shuffle=shuffle_subjects,
             num_workers=num_workers,
             pin_memory=pin_memory,
             drop_last=drop_last,
@@ -187,6 +245,45 @@ class CerebroDataModule(BaseDataModule, metaclass=ABCMeta):
         self.use_augmentation = use_augmentation
         self.use_preprocessing = use_preprocessing
         self.verbose = verbose
+
+        # If patch_size is not None, then use Queue
+        self.patch_size = patch_size
+        if patch_size:
+            self.train_sampler: tio.data.sampler.sampler.PatchSampler
+
+            if create_custom_probability_map:
+                probability_map = 'sampling_map'
+
+            # Init Train Sampler
+            both_something = probability_map is not None and label_name is not None
+            if both_something:
+                raise ValueError(
+                    "Both 'probability_map' and 'label_name' cannot be ",
+                    "not None at the same time",
+                )
+            if probability_map is None and label_name is None:
+                self.train_sampler = tio.UniformSampler(patch_size)
+            elif probability_map is not None:
+                self.train_sampler = tio.WeightedSampler(
+                    patch_size, probability_map)
+            else:
+                self.train_sampler = tio.LabelSampler(patch_size, label_name,
+                                                      label_probabilities)
+
+            self.probability_map = probability_map
+            self.create_custom_probability_map = create_custom_probability_map
+            self.patch_size = patch_size
+            self.label_name = label_name
+            self.label_probabilities = label_probabilities
+
+            # Queue parameters
+            self.train_queue: tio.Queue
+            self.val_queue: tio.Queue
+            self.queue_max_length = queue_max_length
+            self.samples_per_volume = samples_per_volume
+            self.shuffle_subjects = shuffle_subjects
+            self.shuffle_patches = shuffle_patches
+            self.start_background = start_background
 
     def check_if_data_split(self) -> None:
         """
@@ -214,6 +311,23 @@ class CerebroDataModule(BaseDataModule, metaclass=ABCMeta):
         self.check_if_data_split()
 
     def setup(self, stage: Optional[str] = None) -> None:
+        """
+        Creates train, validation and test collection of samplers.
+
+        Parameters
+        ----------
+        stage: Optional[str]
+            Either ``'fit``, ``'validate'``, or ``'test'``.
+            If stage = ``None``, set-up all stages. Default = ``None``.
+        """
+
+        # Don't use the Queue if a patch size is not provided
+        if self.patch_size is None:
+            self._setup_no_queue(stage)
+        else:
+            self._setup_with_queue(stage)
+
+    def _setup_no_queue(self, stage: Optional[str] = None) -> None:
         """
         Creates train, validation and test collection of samplers.
 
@@ -290,6 +404,125 @@ class CerebroDataModule(BaseDataModule, metaclass=ABCMeta):
                 transform=test_transforms,
                 **self.EXTRA_ARGS,
             )
+            self.size_test = self.size_eval_dataset(self.test_dataset)
+
+    def _setup_with_queue(self, stage: Optional[str] = None) -> None:
+        """
+        Creates train, validation and test collection of samplers.
+
+        Parameters
+        ----------
+        stage: Optional[str]
+            Either ``'fit``, ``'validate'``, or ``'test'``.
+            If stage = ``None``, set-up all stages. Default = ``None``.
+        """
+        if stage in (None, "fit"):
+            train_transforms = self.default_transforms(
+                stage="fit"
+            ) if self.train_transforms is None else self.train_transforms
+
+            val_transforms = self.default_transforms(
+                stage="fit"
+            ) if self.val_transforms is None else self.val_transforms
+
+            if not self.has_train_val_split:
+                train_subjects = self.get_subjects(fold="train")
+                if self.create_custom_probability_map:
+                    train_subjects = self.add_sampling_map(train_subjects)
+                train_dataset = self.dataset_cls(
+                    train_subjects,
+                    transform=train_transforms,
+                )
+                val_dataset = self.dataset_cls(
+                    train_subjects,
+                    transform=val_transforms,
+                )
+                self.train_queue = tio.Queue(
+                    cast(tio.SubjectsDataset, train_dataset),
+                    max_length=self.queue_max_length,
+                    samples_per_volume=self.samples_per_volume,
+                    sampler=self.train_sampler,
+                    num_workers=self.num_workers,
+                    shuffle_subjects=self.shuffle_subjects,
+                    shuffle_patches=self.shuffle_patches,
+                    start_background=self.start_background,
+                    verbose=self.verbose)
+
+                self.val_queue = tio.Queue(
+                    cast(tio.SubjectsDataset, val_dataset),
+                    max_length=self.queue_max_length,
+                    samples_per_volume=self.samples_per_volume,
+                    sampler=self.train_sampler,
+                    num_workers=self.num_workers,
+                    shuffle_subjects=self.shuffle_subjects,
+                    shuffle_patches=self.shuffle_patches,
+                    start_background=self.start_background,
+                    verbose=self.verbose)
+
+                self.validation = self.val_cls(
+                    train_dataset=self.train_queue,
+                    val_dataset=self.val_queue,
+                    batch_size=self.batch_size,
+                    shuffle=False,
+                    num_workers=0,
+                    pin_memory=self.pin_memory,
+                    drop_last=self.drop_last,
+                    num_folds=self.num_folds,
+                    seed=self.seed,
+                )
+                self.validation.setup(self.val_split)
+                self.has_validation = True
+                self.train_dataset = self.train_queue
+                self.size_train = self.size_train_dataset(
+                    self.validation.train_samplers)
+                self.val_dataset = self.val_queue
+                self.size_val = self.size_eval_dataset(
+                    self.validation.val_samplers)
+            else:
+                train_subjects = self.get_subjects(fold="train")
+                if self.create_custom_probability_map:
+                    train_subjects = self.add_sampling_map(train_subjects)
+                train_dataset = self.dataset_cls(train_subjects,
+                                                 transform=train_transforms)
+                self.train_queue = tio.Queue(
+                    cast(tio.SubjectsDataset, train_dataset),
+                    max_length=self.queue_max_length,
+                    samples_per_volume=self.samples_per_volume,
+                    sampler=self.train_sampler,
+                    num_workers=self.num_workers,
+                    shuffle_subjects=self.shuffle_subjects,
+                    shuffle_patches=self.shuffle_patches,
+                    start_background=self.start_background,
+                    verbose=self.verbose)
+
+                val_subjects = self.get_subjects(fold="val")
+                if self.create_custom_probability_map:
+                    train_subjects = self.add_sampling_map(val_subjects)
+                val_dataset = self.dataset_cls(val_subjects,
+                                               transform=val_transforms)
+                self.train_dataset = self.train_queue
+                self.size_train = self.size_train_dataset(self.train_dataset)
+
+                self.val_queue = tio.Queue(
+                    cast(tio.SubjectsDataset, val_dataset),
+                    max_length=self.queue_max_length,
+                    samples_per_volume=self.samples_per_volume,
+                    sampler=self.train_sampler,
+                    num_workers=self.num_workers,
+                    shuffle_subjects=self.shuffle_subjects,
+                    shuffle_patches=self.shuffle_patches,
+                    start_background=self.start_background,
+                    verbose=self.verbose)
+                self.val_dataset = self.val_queue
+                self.size_val = self.size_eval_dataset(self.val_dataset)
+
+        if stage in (None, "test"):
+            test_transforms = self.default_transforms(
+                stage="test"
+            ) if self.test_transforms is None else self.test_transforms
+            test_subjects = self.get_subjects(fold="test")
+            self.test_dataset = self.dataset_cls(test_subjects,
+                                                 transform=test_transforms)
             self.size_test = self.size_eval_dataset(self.test_dataset)
 
     @abstractmethod
@@ -695,3 +928,34 @@ class CerebroDataModule(BaseDataModule, metaclass=ABCMeta):
         """
         if self.is_temp_dir:
             shutil.rmtree(self.root)
+
+    def add_sampling_map(
+        self,
+        subjects: List[tio.Subject],
+        image_reference: str = '3T_MPR',
+    ) -> List[tio.Subject]:
+        """
+        Add sampling map to list of subjects.
+
+        Parameters
+        ----------
+        subjects : List[tio.Subject]
+            List of tio.Subject instances.
+        image_reference : str, Optional
+            Name of the image to base the sampling map.
+            Default = ``"3T_MPR"```.
+
+        Returns
+        -------
+        new_subjects : List[tio.Subject]
+            List of tio.Subject instances with added sampling map.
+        """
+        new_subjects = []
+        for subject in subjects:
+            probabilities = create_probability_map(subject, self.patch_size)
+            sampling_map = tio.Image(tensor=probabilities,
+                                     affine=subject[image_reference].affine,
+                                     type=tio.SAMPLING_MAP)
+            subject.add_image(sampling_map, 'sampling_map')
+            new_subjects.append(subject)
+        return new_subjects
